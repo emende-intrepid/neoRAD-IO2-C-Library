@@ -5,6 +5,10 @@
 #include "neoRADIO2_frames.h"
 #include "fifo.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if 0
 #define VENDOR_ID 0x093C
 #define PRODUCT_ID 0x1300
@@ -67,3 +71,9 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ProcessIncommingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus);
 int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings, int len);
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online);
+unsigned int neoRADIO2GetReportRate(neoRADIO2_DeviceInfo * deviceInfo, int device, int chip);
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -2,6 +2,10 @@
 #include "../libs/hidapi/hidapi/hidapi.h"
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct _ft260_device {
     char PathInterface0[256];
     char PathInterface1[256];
@@ -171,3 +175,8 @@ enum {
 
 #define GPIO_OUTPUT					0x01
 #define GPIO_INPUT				    0x00
+
+
+#ifdef __cplusplus
+}
+#endif

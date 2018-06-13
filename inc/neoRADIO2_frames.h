@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef _MSC_VER
 #pragma pack(push,1)
 #define PACKED 
@@ -172,4 +176,9 @@ typedef union _bytesToFloat {
 #undef PACKED 
 #else
 #undef PACKED 
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif

@@ -176,3 +176,10 @@ void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online)
 {
     deviceInfo->online = online;
 }
+
+neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t id)
+{
+	int device = 0xF & (id >> 4);
+	int chip = 0xF&(id);
+	return deviceInfo->ChainList[device - 1][chip].deviceType;
+}

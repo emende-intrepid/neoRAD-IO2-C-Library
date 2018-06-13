@@ -2,6 +2,10 @@
 #include "neoRAD-IO2.h"
 #include "fifo.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int neoRADIO2SendIdentifyPacket(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2FindHeaderPacket(uint8_t * data, int len);
@@ -17,10 +21,13 @@ void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2GetDeviceNum(neoRADIO2frame_id id);
 int neoRADIO2GetChipNum(neoRADIO2frame_id id);
 neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t id);
-unsigned int neoRADIO2GetReportRate(neoRADIO2_DeviceInfo * deviceInfo, int device, int chip);
 uint8_t neoRADIO2CalcCheckSum8(uint8_t * data, int len);
 uint16_t neoRADIO2CalcCheckSum16(uint16_t * data, int len);
 
 
 #define getUpperNibble(x) (0xF & (x >> 4))
 #define getLowerNibble(x) (0xF & (x))
+
+#ifdef __cplusplus
+}
+#endif

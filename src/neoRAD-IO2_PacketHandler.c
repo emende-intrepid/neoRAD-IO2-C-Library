@@ -414,13 +414,6 @@ void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
 
 }
 
-neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t id)
-{
-    int device = 0xF & (id >> 4);
-    int chip = 0xF&(id);
-    return deviceInfo->ChainList[device - 1][chip].deviceType;
-}
-
 uint8_t neoRADIO2CalcCheckSum8(uint8_t * data, int len)
 {
     uint8_t sum = 0;

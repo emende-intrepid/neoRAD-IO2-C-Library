@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define memcpy_fast memcpy
 
 #define INLINE_FIFO_PUSH_POP
@@ -167,4 +171,9 @@ void FIFO_Pop(fifo_t* f, uint8_t* bytes, unsigned int numBytes);
 void FIFO_Init(fifo_t* f, void* buffer, const unsigned int sz);
 void FIFO_Clear(fifo_t* f);
 unsigned int FIFO_Copy(fifo_t* dst, fifo_t* src, unsigned int numBytes);
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif

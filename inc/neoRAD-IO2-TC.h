@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 uint8_t neoRADIO2TCCalcDataRate(uint16_t reportRate);
 
 #define NEORADIO2TC_ENABLEREAD_DISABLE  0x00
@@ -16,3 +20,8 @@ uint8_t neoRADIO2TCCalcDataRate(uint16_t reportRate);
 #define DATARATE_250SPS	5
 #define DATARATE_475SPS	6
 #define DATARATE_860SPS	7
+
+
+#ifdef __cplusplus
+}
+#endif
