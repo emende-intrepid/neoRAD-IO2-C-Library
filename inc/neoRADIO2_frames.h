@@ -67,7 +67,7 @@ typedef struct _neoRADIO2frame_DeviceReportHeader {
 typedef struct _neoRADIO2_ReceiveData {
     neoRADIO2frame_DeviceReportHeader header;
     uint8_t data[36];
-} __attribute__((packed))  neoRADIO2_ReceiveData;
+} PACKED  neoRADIO2_ReceiveData;
 
 typedef struct _neoRADIO2frame_identify {
     uint8_t device_type;
