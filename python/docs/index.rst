@@ -1,4 +1,4 @@
-python_example Documentation
+neoradio2 Documentation
 ============================
 
 Contents:
@@ -6,5 +6,5 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   python_example
+   neoradio2
 
