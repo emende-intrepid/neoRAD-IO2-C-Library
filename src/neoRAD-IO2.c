@@ -1,5 +1,5 @@
 #include "neoRAD-IO2.h"
-#include "neoRAD-IO2_PacketHandler.c"
+#include "neoRAD-IO2_PacketHandler.h"
 #include "neoRADIO2_frames.h"
 #include <string.h>
 #include <stdio.h>
