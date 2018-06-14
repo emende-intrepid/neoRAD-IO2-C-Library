@@ -16,7 +16,12 @@ int ft260FindDevices(ft260_device devices[], int len, int vid, int pid)
     deviceList = hid_enumerate(vid, pid);
 
     if (deviceList == NULL)
-        return -1;
+    {
+	    // try one more time
+	    deviceList = hid_enumerate(vid, pid);
+	    if (!deviceList)
+		    return -1;
+    }
 
     deviceListPtr = deviceList;
 
