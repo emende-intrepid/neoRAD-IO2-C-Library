@@ -1,9 +1,14 @@
 #pragma once
-#include "../libs/hidapi/hidapi/hidapi.h"
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#include "../libs/hidapi/hidapi/hidapi.h"
+#include <stdint.h>
+
+#if _MSC_VER >= 1400 
+#pragma comment( lib, "Setupapi.lib" )
 #endif
 
 typedef struct _ft260_device {

@@ -3,7 +3,11 @@ set(HIDAPI_HEADER_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/hidapi)
 
 if(WIN32)
     set(HIDAPI_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/windows)
-    link_libraries("-lhid -lsetupapi")
+    if(MSVC)
+	
+    else()
+		link_libraries("-lhid -lsetupapi")
+    endif()
 elseif(APPLE)
     set(HIDAPI_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/mac)
     find_library(ObjC objc)
