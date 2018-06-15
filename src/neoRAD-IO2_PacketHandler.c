@@ -16,7 +16,7 @@ int neoRADIO2SendIdentifyPacket(neoRADIO2_DeviceInfo * deviceInfo)
     buf[6] = NEORADIO2_DEVTYPE_HOST; //chip
     buf[7] = 0x00; //id
 
-    if (ft260TransmitUART(&deviceInfo->ft260Device, buf, 8) == 8)
+    if (ft260TransmitUART(&deviceInfo->usbDevice.ft260Device, buf, 8) == 8)
         return  0;
     else
         return -1;
@@ -28,7 +28,7 @@ int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
     uint8_t txBuf[59];
     int rxLen, txLen;
 
-    rxLen = ft260ReceiveUART(&devInfo->ft260Device, rxBuf);
+    rxLen = ft260ReceiveUART(&devInfo->usbDevice.ft260Device, rxBuf);
     if(rxLen > 0)
     {
         FIFO_Push(&devInfo->rxfifo, rxBuf, rxLen);
@@ -43,7 +43,7 @@ int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
     {
         if(txLen > sizeof(txBuf))
             txLen = sizeof(txBuf);
-        txLen = ft260TransmitUART(&devInfo->ft260Device, FIFO_GetReadPtr(&devInfo->txfifo), txLen);
+        txLen = ft260TransmitUART(&devInfo->usbDevice.ft260Device, FIFO_GetReadPtr(&devInfo->txfifo), txLen);
         if(txLen < 0)
         {
             return -1;
@@ -124,7 +124,7 @@ void neoRADIO2LookForIdentHeader(neoRADIO2_DeviceInfo * deviceInfo)
 
 int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, neoRADIO2_destination * dest, uint8_t * data, int len)
 {
-    int txlen = sizeof(neoRADIO2frame_header) + len;
+    unsigned int txlen = sizeof(neoRADIO2frame_header) + len;
     uint8_t buf[62];
 
     if (len > (59 - sizeof(neoRADIO2frame_header)))
@@ -154,7 +154,7 @@ int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, neoRADI
 
 void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    for (int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
+    for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
     {
         neoRADIO2_destination dest = {0};
         dest.device = dev + 1;
@@ -192,20 +192,20 @@ int neoRADIO2SendUARTBreak(neoRADIO2_DeviceInfo * devInfo)
     buf[2] = 0x00;
     buf[3] = 0x00;
     buf[4] = 0x80;
-    result = ft260ConfigureDevice(&devInfo->ft260Device, buf, sizeof(buf));
+    result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
 
     if (result != 0)
         return -1;
 
     buf[3] = 0x80;
-    return ft260ConfigureDevice(&devInfo->ft260Device, buf, sizeof(buf));
+    return ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
 
 }
 void neoRADIO2LookForDeviceReports(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    int len = 0;
-    int loc = 0;
-    int readsize;
+    unsigned int len = 0;
+    unsigned int loc = 0;
+    unsigned int readsize;
     neoRADIO2frame_DeviceReportHeader * report;
     neoRADIO2frame_header * header;
     uint8_t rxdata[128];
@@ -354,7 +354,7 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 
 void neoRADIO2SendSettingsHeader(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    for (int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
+    for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
     {
         neoRADIO2_destination dest;
         dest.device = dev + 1;
@@ -400,7 +400,7 @@ void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
                     return;
             }
         }
-        for (int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
+        for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
         {
             for (int chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
             {

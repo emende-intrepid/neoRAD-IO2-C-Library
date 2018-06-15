@@ -1,6 +1,9 @@
 set(HEADERS_PATH ${PROJECT_SOURCE_DIR}/inc)
 set(HIDAPI_HEADER_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/hidapi)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 11)
+
 if(WIN32)
     set(HIDAPI_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/windows)
     if(MSVC)
