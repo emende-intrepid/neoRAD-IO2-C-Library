@@ -4,19 +4,31 @@
 #include <string.h>
 #include <stdio.h>
 
-int neoRADIO2FindDevices(neoRADIO2_DeviceInfo * devInfo)
+/*
+* Function: neoRADIO2FindDevices
+* ----------------------------
+*   Finds neoRAD-IO2 USB Devices
+*
+*   usbDevices: Array of neoRADIO2_USBDevice which will be filled in by function
+*   size: size of usbDevices
+*
+*   returns: Number of devices found. 0 if no devices found.
+*/
+
+int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size)
 {
     int result = 0;
-
-    ft260_device devices[NEORADIO2_MAX_SUPPORTED_USB_DEVICES];
+    ft260_device  devices[NEORADIO2_MAX_SUPPORTED_USB_DEVICES];
     result = ft260FindDevices(devices, NEORADIO2_MAX_SUPPORTED_USB_DEVICES, VENDOR_ID, PRODUCT_ID);
-    if (result >= 1)
+    if (result >= 0)
     {
-        memcpy(&devInfo->ft260Device, &devices[0], sizeof(ft260_device));
-        return 0;
+		for (int i = 0; i < result; i++)
+			memcpy(&usbDevices[i].ft260Device, &devices[i], sizeof(ft260_device));
+        return result;
     }
     return -1;
 }
+
 
 int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
 {
@@ -25,7 +37,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
 
     FIFO_Init(&devInfo->rxfifo, devInfo->rxbuffer, NEORADIO2_RX_BUFFER_SIZE);
     FIFO_Init(&devInfo->txfifo, devInfo->txbuffer, NEORADIO2_TX_BUFFER_SIZE);
-    result = ft260OpenDevice(&devInfo->ft260Device);
+    result = ft260OpenDevice(&devInfo->usbDevice.ft260Device);
     devInfo->maxID.byte = 0;
 
     if (result == 0)
@@ -34,7 +46,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
         buf[0] = SYSTEM_SETTING_REPORT_ID;
         buf[1] = SET_CLOCK;
         buf[2] = CLOCK_CTRL_48;
-        result = ft260ConfigureDevice(&devInfo->ft260Device, buf, sizeof(buf));
+		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
     }
     if (result == 0)
     {
@@ -43,7 +55,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
         buf[0] = SYSTEM_SETTING_REPORT_ID;
         buf[1] = 0x08;
         buf[2] = 0x04;
-        result = ft260ConfigureDevice(&devInfo->ft260Device, buf, sizeof(buf));
+		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
     }
     if (result == 0)
     {
@@ -52,7 +64,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
         buf[0] = SYSTEM_SETTING_REPORT_ID;
         buf[1] = 0x09;
         buf[2] = 0x05;
-        result = ft260ConfigureDevice(&devInfo->ft260Device, buf, sizeof(buf));
+        result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
     }
     if (result == 0)
     {
@@ -63,11 +75,11 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
         buf[2] = 0x00;
         buf[3] = 0x80;
         buf[4] = 0x80;
-        result = ft260ConfigureDevice(&devInfo->ft260Device, buf, sizeof(buf));
+		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
     }
     if (result == 0)
     {
-        result = ft260SetupUART(&devInfo->ft260Device, 500000, 1, 0);
+        result = ft260SetupUART(&devInfo->usbDevice.ft260Device, 500000, 1, 0);
     }
 
     if (result == 0)
@@ -123,7 +135,7 @@ int neoRADIO2ProcessIncommingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffT
 
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo)
 {
-    ft260CloseDevice(&devInfo->ft260Device);
+    ft260CloseDevice(&devInfo->usbDevice.ft260Device);
     memset(devInfo, 0, sizeof(neoRADIO2_DeviceInfo));
     devInfo->State = neoRADIO2state_Disconnected;
 }
@@ -182,4 +194,20 @@ neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInf
 	int device = 0xF & (id >> 4);
 	int chip = 0xF&(id);
 	return deviceInfo->ChainList[device - 1][chip].deviceType;
+}
+
+void neoRADIO2_SerialToString(char * string, uint32_t serial)
+{
+	for (int i = 5; i >= 0; i--)
+	{
+		string[i] = serial % 36;
+		serial /= 36;
+
+		if (string[i] < 9)
+			string[i] += 0x30;
+		else if (string[i] < 35)
+			string[i] += 0x41;
+		else
+			string[i] = ' ';
+	}
 }

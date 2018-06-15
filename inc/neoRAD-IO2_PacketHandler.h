@@ -1,6 +1,5 @@
 #pragma once
 #include "neoRAD-IO2.h"
-#include "fifo.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -3,8 +3,6 @@
 #include <string.h>
 #include <stdint.h>
 
-
-//TODO support more devices, We need to be able to set Serial in ft260 to do this.
 int ft260FindDevices(ft260_device devices[], int len, int vid, int pid)
 {
     int deviceCount = 0;
