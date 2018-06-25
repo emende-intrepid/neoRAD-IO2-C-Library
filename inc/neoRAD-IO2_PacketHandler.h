@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-int neoRADIO2SendIdentifyPacket(neoRADIO2_DeviceInfo * deviceInfo);
+int neoRADIO2IdentifyChain(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2FindHeaderPacket(uint8_t * data, int len);
 void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo);

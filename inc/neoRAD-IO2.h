@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#if 1
+#if 0
 #define VENDOR_ID 0x093C
 #define PRODUCT_ID 0x1300
 #else
@@ -35,7 +35,7 @@ typedef struct _neoRADIO2_ChipInfo {
     uint8_t		hardwareRev_major;
     uint8_t		hardwareRev_minor;
     uint8_t     status;
-    uint8_t     settingsRead;
+    uint8_t     settingsValid;
     uint64_t    lastReadTimeus;
     neoRADIO2frame_deviceSettings settings;
 } neoRADIO2_ChipInfo;
@@ -71,14 +71,17 @@ typedef struct _neoRADIO2_DeviceInfo {
     int rxHeaderCount;
 } neoRADIO2_DeviceInfo;
 
+extern const unsigned int neoRADIO2deviceNumberChips[];
+
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size);
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo);
-int neoRADIO2ProcessIncommingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus);
+int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus);
 int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings, int len);
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online);
+int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo);
 unsigned int neoRADIO2GetReportRate(neoRADIO2_DeviceInfo * deviceInfo, int device, int chip);
-void neoRADIO2_SerialToString(char * string, uint32_t serial);
+void neoRADIO2SerialToString(char * string, uint32_t serial);
 
 #ifdef __cplusplus
 }

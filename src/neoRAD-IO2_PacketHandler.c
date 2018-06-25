@@ -1,25 +1,27 @@
 #include "neoRAD-IO2_PacketHandler.h"
 
-const int neoRADIO2deviceNumberChips[] = {8, 8, 1, 8, 8, 1};
-
-
-int neoRADIO2SendIdentifyPacket(neoRADIO2_DeviceInfo * deviceInfo)
+int neoRADIO2IdentifyChain(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    uint8_t buf[64];
+    uint8_t buf[2];
+    neoRADIO2_destination dest;
 
-    buf[0] = 0xAA; //aa
-    buf[1] = NEORADIO2_COMMAND_IDENTIFY; //command
-    buf[2] = 0xFF; //destination
-    buf[3] = 0xFF; //destination
-    buf[4] = 0x02; //length
-    buf[5] = neoRADIO2CalcCheckSum8(buf, 5);
-    buf[6] = NEORADIO2_DEVTYPE_HOST; //chip
-    buf[7] = 0x00; //id
+    buf[0] = NEORADIO2_DEVTYPE_HOST; //chip
+    buf[1] = 0x00; //id
 
-    if (ft260TransmitUART(&deviceInfo->usbDevice.ft260Device, buf, 8) == 8)
-        return  0;
+    dest.device = 0xFF;
+    dest.chip = 0xFF;
+
+    if (neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_IDENTIFY, &dest, buf, 2) ==0)
+    {
+        deviceInfo->State = neoRADIO2state_ConnectedWaitIdentHeader;
+        deviceInfo->maxID.byte = 0;
+        memset(deviceInfo->ChainList, 0x00, sizeof(deviceInfo->ChainList));
+        return 0;
+    }
     else
+    {
         return -1;
+    }
 }
 
 int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
@@ -130,9 +132,6 @@ int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, neoRADI
     if (len > (59 - sizeof(neoRADIO2frame_header)))
         return -1;
 
-    if (dest->device > devInfo->maxID.bits.device)
-        return -1;
-
     if (FIFO_GetFreeSpace(&devInfo->txfifo) < txlen)
         return -1;
 
@@ -160,7 +159,7 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
         dest.device = dev + 1;
 
 
-        for (int chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
+        for (unsigned int chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
         {
             uint64_t reportRatems = neoRADIO2GetReportRate(deviceInfo, dev, chip);
             uint64_t lastReporttime = deviceInfo->ChainList[dev][chip].lastReadTimeus;
@@ -343,8 +342,7 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 
                 if (response.deviceID == 0x10)
                 {
-                    neoRADIO2SendSettingsHeader(deviceInfo);
-                    deviceInfo->State = neoRADIO2state_ConnectedWaitSettings;
+                    deviceInfo->State = neoRADIO2state_Connected;
                 }
             }
         }
@@ -375,7 +373,7 @@ void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
             int device = getUpperNibble(deviceInfo->rxDataBuffer[i].header.id) - 1;
             int chip = getLowerNibble(deviceInfo->rxDataBuffer[i].header.id);
 
-            deviceInfo->ChainList[device][chip].settingsRead = 1;
+            deviceInfo->ChainList[device][chip].settingsValid = 1;
             switch(neoRADIO2GetGetDeviceType(deviceInfo, deviceInfo->rxDataBuffer[i].header.id))
             {
                 case NEORADIO2_DEVTYPE_TC:
@@ -402,10 +400,11 @@ void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
         }
         for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
         {
-            for (int chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
+            for (int unsigned chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
             {
-                if (deviceInfo->ChainList[dev][chip].settingsRead == 0)
-                    return;
+                if (deviceInfo->ChainList[dev][chip].settingsValid == 0)
+                    if(deviceInfo->ChainList[dev][chip].status != NEORADIO2STATE_INBOOTLOADER)
+                        return;
             }
         }
         deviceInfo->rxDataCount = 0;

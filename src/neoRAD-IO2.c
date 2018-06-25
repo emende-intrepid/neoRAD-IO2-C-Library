@@ -14,6 +14,8 @@
 *   returns: Number of devices found. 0 if no devices found.
 */
 
+const unsigned int neoRADIO2deviceNumberChips[] = {8, 8, 1, 8, 8, 1};
+
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size)
 {
     int result = 0;
@@ -22,7 +24,13 @@ int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int si
     if (result >= 0)
     {
 		for (int i = 0; i < result; i++)
+        {
 			memcpy(&usbDevices[i].ft260Device, &devices[i], sizeof(ft260_device));
+            for (int j = 0; j < 6; j++)
+            {
+                usbDevices[i].serial[j] = (char)devices->SerialNumber[j];
+            }
+        }
         return result;
     }
     return -1;
@@ -78,24 +86,18 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
     }
     if (result == 0)
     {
-        result = ft260SetupUART(&devInfo->usbDevice.ft260Device, 500000, 1, 0);
+        result = ft260SetupUART(&devInfo->usbDevice.ft260Device, 250000, 1, 0);
     }
 
     if (result == 0)
     {
-        result = neoRADIO2SendIdentifyPacket(devInfo);
+        result = neoRADIO2IdentifyChain(devInfo);
     }
-
-    if (result == 0)
-    {
-        devInfo->State = neoRADIO2state_ConnectedWaitIdentHeader;
-    }
-
     return result;
 }
 
 //This must be called every 1 ms
-int neoRADIO2ProcessIncommingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus)
+int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus)
 {
     int result = 0;
     devInfo->Timeus += diffTimeus;
@@ -188,6 +190,35 @@ void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online)
     deviceInfo->online = online;
 }
 
+int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo)
+{
+    if (deviceInfo->State != neoRADIO2state_Connected)
+    {
+        return -1;
+    }
+
+    neoRADIO2SendSettingsHeader(deviceInfo);
+    deviceInfo->State = neoRADIO2state_ConnectedWaitSettings;
+    return 0;
+}
+
+int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo)
+{
+
+    for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
+    {
+        for (unsigned int chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
+        {
+            if (deviceInfo->ChainList[dev][chip].settingsValid == 0)
+                if(deviceInfo->ChainList[dev][chip].status != NEORADIO2STATE_INBOOTLOADER) //bootloader cannot read settigns
+                    return 0;
+        }
+    }
+    return 1;
+}
+
+
+
 neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t id)
 {
 	int device = 0xF & (id >> 4);
@@ -195,7 +226,7 @@ neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInf
 	return deviceInfo->ChainList[device - 1][chip].deviceType;
 }
 
-void neoRADIO2_SerialToString(char * string, uint32_t serial)
+void neoRADIO2SerialToString(char * string, uint32_t serial)
 {
 	for (int i = 5; i >= 0; i--)
 	{
@@ -205,7 +236,7 @@ void neoRADIO2_SerialToString(char * string, uint32_t serial)
 		if (string[i] < 9)
 			string[i] += 0x30;
 		else if (string[i] < 35)
-			string[i] += 0x41;
+			string[i] += 0x37;
 		else
 			string[i] = ' ';
 	}

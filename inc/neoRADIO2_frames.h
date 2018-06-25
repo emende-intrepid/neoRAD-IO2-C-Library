@@ -85,11 +85,10 @@ typedef enum _neoRADIO2frame_commands {
 } _neoRADIO2frame_commands;
 
 typedef enum _neoRADIO2frame_BLcommands {
-    NEORADIO2_BLCOMMAND_ERASE		=0,
+    NEORADIO2_BLCOMMAND_WRITEBUFFER	=0,
     NEORADIO2_BLCOMMAND_WRITE		=1,
-    NEORADIO2_BLCOMMAND_FLASH		=2,
-    NEORADIO2_BLCOMMAND_VERIFY		=3,
-    NEORADIO2_BLCOMMAND_JUMP_APP	=4,
+    NEORADIO2_BLCOMMAND_VERIFY		=2,
+    NEORADIO2_BLCOMMAND_JUMP_APP	=3,
 } neoRADIO2frame_BLommands;
 
 typedef struct _neoRADIO2AOUTframe_data {
