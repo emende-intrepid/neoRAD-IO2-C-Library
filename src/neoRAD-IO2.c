@@ -142,15 +142,14 @@ void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo)
 }
 
 
-int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings, int len)
+int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings)
 {
-
-    int device = dest->device;
-    int chip = dest->chip;
+    uint8_t device = dest->device;
+    uint8_t chip = dest->chip;
     int i = 0;
     for (int i = 0; i < 8; i++)
     {
-        if (chip >> i)
+        if (0x1 & chip >> i)
         {
             switch (deviceInfo->ChainList[device - 1][i].deviceType)
             {
@@ -175,14 +174,11 @@ int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_dest
                 default:
                     return -1;
             }
+
+            deviceInfo->ChainList[device - 1][i].settingsValid = 0;
         }
     }
     return neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_SETSETTINGS, dest, settings, sizeof(neoRADIO2frame_deviceSettings));
-}
-
-void neoRADIO2SetReadRate(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2frame_id id, uint16_t rate)
-{
-    deviceInfo->ChainList[neoRADIO2GetDeviceNum(id)][neoRADIO2GetChipNum(id)].settings.device.tc.reportRate = rate;
 }
 
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online)
@@ -198,7 +194,6 @@ int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo)
     }
 
     neoRADIO2SendSettingsHeader(deviceInfo);
-    deviceInfo->State = neoRADIO2state_ConnectedWaitSettings;
     return 0;
 }
 

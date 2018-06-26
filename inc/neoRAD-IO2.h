@@ -77,9 +77,10 @@ int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int si
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus);
-int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings, int len);
+int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings);
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online);
 int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo);
+int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo);
 unsigned int neoRADIO2GetReportRate(neoRADIO2_DeviceInfo * deviceInfo, int device, int chip);
 void neoRADIO2SerialToString(char * string, uint32_t serial);
 
