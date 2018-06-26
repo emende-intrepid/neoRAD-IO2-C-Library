@@ -360,6 +360,13 @@ void neoRADIO2SendSettingsHeader(neoRADIO2_DeviceInfo * deviceInfo)
         neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_READSETTINGS, &dest, NULL, 0);
     }
 
+    for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
+    {
+        for (int unsigned chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
+        {
+            deviceInfo->ChainList[dev][chip].settingsValid = 0;
+        }
+    }
     deviceInfo->State = neoRADIO2state_ConnectedWaitSettings;
 }
 
