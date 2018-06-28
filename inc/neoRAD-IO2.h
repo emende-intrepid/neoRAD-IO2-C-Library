@@ -42,6 +42,7 @@ typedef struct _neoRADIO2_ChipInfo {
 
 typedef enum _neoRADIO2_RunStates {
     neoRADIO2state_Disconnected,
+    neoRADIO2state_ConnectedWaitForAppStart,
     neoRADIO2state_ConnectedWaitIdentHeader,
     neoRADIO2state_ConnectedWaitIdentResponse,
     neoRADIO2state_ConnectedWaitSettings,

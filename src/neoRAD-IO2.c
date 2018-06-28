@@ -13,7 +13,6 @@
 *
 *   returns: Number of devices found. 0 if no devices found.
 */
-
 const unsigned int neoRADIO2deviceNumberChips[] = {8, 8, 1, 8, 8, 1};
 
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size)
@@ -91,7 +90,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
 
     if (result == 0)
     {
-        result = neoRADIO2IdentifyChain(devInfo);
+        result = neoRADIO2SendJumpToApp(devInfo);
     }
     return result;
 }
@@ -104,6 +103,11 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
     switch (devInfo->State)
     {
         case neoRADIO2state_Disconnected:
+            break;
+        case neoRADIO2state_ConnectedWaitForAppStart:
+            result = neoRADIO2GetNewData(devInfo);
+            neoRADIO2LookForDeviceReports(devInfo);
+            neoRADIO2LookForStartHeader(devInfo);
             break;
         case neoRADIO2state_ConnectedWaitIdentHeader:
             result = neoRADIO2GetNewData(devInfo);
