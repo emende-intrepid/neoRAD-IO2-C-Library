@@ -13,7 +13,7 @@
 *
 *   returns: Number of devices found. 0 if no devices found.
 */
-const unsigned int neoRADIO2deviceNumberChips[] = {8, 8, 1, 8, 8, 1};
+const unsigned int neoRADIO2GetDeviceNumberOfBanks[] = {8, 8, 1, 8, 8, 1};
 
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size)
 {
@@ -44,7 +44,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
     FIFO_Init(&devInfo->rxfifo, devInfo->rxbuffer, NEORADIO2_RX_BUFFER_SIZE);
     FIFO_Init(&devInfo->txfifo, devInfo->txbuffer, NEORADIO2_TX_BUFFER_SIZE);
     result = ft260OpenDevice(&devInfo->usbDevice.ft260Device);
-    devInfo->maxID.byte = 0;
+    devInfo->LastBank = 0;
 
     if (result == 0)
     {
@@ -100,40 +100,35 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
 {
     int result = 0;
     devInfo->Timeus += diffTimeus;
+    if (devInfo->State != neoRADIO2state_Disconnected)
+    {
+        result = neoRADIO2GetNewData(devInfo);
+        if (result != 0)
+            return result;
+        neoRADIO2LookForDevicePackets(devInfo);
+    }
     switch (devInfo->State)
     {
         case neoRADIO2state_Disconnected:
             break;
         case neoRADIO2state_ConnectedWaitForAppStart:
-            result = neoRADIO2GetNewData(devInfo);
-            neoRADIO2LookForDeviceReports(devInfo);
             neoRADIO2LookForStartHeader(devInfo);
             break;
         case neoRADIO2state_ConnectedWaitIdentHeader:
-            result = neoRADIO2GetNewData(devInfo);
             neoRADIO2LookForIdentHeader(devInfo);
             break;
         case neoRADIO2state_ConnectedWaitIdentResponse:
-            result = neoRADIO2GetNewData(devInfo);
             neoRADIO2LookForIdentResponse(devInfo);
             break;
         case neoRADIO2state_ConnectedWaitSettings:
-            result = neoRADIO2GetNewData(devInfo);
-            neoRADIO2LookForDeviceReports(devInfo);
             neoRADIO2ReadSettings(devInfo);
             break;
         case neoRADIO2state_Connected:
-            result = neoRADIO2GetNewData(devInfo);
-            if (devInfo->online)
+            if (devInfo->isOnline)
                 neoRADIO2ProcessConnectedState(devInfo);
-            neoRADIO2LookForDeviceReports(devInfo);
             break;
         default:
             neoRADIO2CloseDevice(devInfo);
-    }
-    if (result != 0)
-    {
-        neoRADIO2CloseDevice(devInfo);
     }
     return result;
 }
@@ -146,48 +141,23 @@ void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo)
 }
 
 
-int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, neoRADIO2_destination * dest, void * settings)
+int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, uint8_t device, uint8_t bank, neoRADIO2_deviceSettings * settings)
 {
-    uint8_t device = dest->device;
-    uint8_t chip = dest->chip;
-    int i = 0;
     for (int i = 0; i < 8; i++)
     {
-        if (0x1 & chip >> i)
+        if (0x1 & bank >> i)
         {
-            switch (deviceInfo->ChainList[device - 1][i].deviceType)
-            {
-                case NEORADIO2_DEVTYPE_TC:
-                    memcpy(&deviceInfo->ChainList[device - 1][i].settings.device.tc, \
-                         settings, sizeof(neoRADIO2TCframe_deviceSettings));
-                    break;
-                case NEORADIO2_DEVTYPE_PWRRLY:
-                    memcpy(&deviceInfo->ChainList[device - 1][i].settings.device.pwrrly, \
-                        settings, sizeof(neoRADIO2PWRRLYframe_deviceSettings));
-                    break;
-                case NEORADIO2_DEVTYPE_AIN:
-                    memcpy(&deviceInfo->ChainList[device - 1][i].settings.device.ain, \
-                        settings, sizeof(neoRADIO2AINframe_deviceSettings));
-                    break;
-                case NEORADIO2_DEVTYPE_AOUT:
-                    memcpy(&deviceInfo->ChainList[device - 1][i].settings.device.aout, \
-                        settings, sizeof(neoRADIO2AOUTframe_deviceSettings));
-                    break;
-                case NEORADIO2_DEVTYPE_DIO:
-                case NEORADIO2_DEVTYPE_CANHUB:
-                default:
-                    return -1;
-            }
-
-            deviceInfo->ChainList[device - 1][i].settingsValid = 0;
+            memcpy(&deviceInfo->ChainList[device][i].settings, settings, sizeof(neoRADIO2_deviceSettings));
+            deviceInfo->ChainList[device][i].settingsValid = 0;
         }
     }
-    return neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_SETSETTINGS, dest, settings, sizeof(neoRADIO2frame_deviceSettings));
+
+    return neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_WRITE_SETTINGS, device, bank, (uint8_t *)settings, sizeof(neoRADIO2_deviceSettings));
 }
 
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online)
 {
-    deviceInfo->online = online;
+    deviceInfo->isOnline = online;
 }
 
 int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo)
@@ -203,13 +173,12 @@ int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo)
 
 int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo)
 {
-
-    for (unsigned int dev = 0; dev < deviceInfo->maxID.bits.device; dev++)
+    for (unsigned int dev = 0; dev < deviceInfo->LastDevice; dev++)
     {
-        for (unsigned int chip = 0; chip < neoRADIO2deviceNumberChips[deviceInfo->ChainList[dev][0].deviceType]; chip++)
+        for (unsigned int bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
         {
-            if (deviceInfo->ChainList[dev][chip].settingsValid == 0)
-                if(deviceInfo->ChainList[dev][chip].status != NEORADIO2STATE_INBOOTLOADER) //bootloader cannot read settigns
+            if (deviceInfo->ChainList[dev][bank].settingsValid == 0)
+                if(deviceInfo->ChainList[dev][bank].status != NEORADIO2STATE_INBOOTLOADER) //bootloader cannot read settigns
                     return 0;
         }
     }
@@ -218,11 +187,9 @@ int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo)
 
 
 
-neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t id)
+neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t device, uint8_t bank)
 {
-	int device = 0xF & (id >> 4);
-	int chip = 0xF&(id);
-	return deviceInfo->ChainList[device - 1][chip].deviceType;
+	return deviceInfo->ChainList[device][bank].deviceType;
 }
 
 void neoRADIO2SerialToString(char * string, uint32_t serial)

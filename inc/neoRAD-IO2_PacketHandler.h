@@ -8,26 +8,21 @@ extern "C" {
 int neoRADIO2IdentifyChain(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2SendJumpToApp(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * deviceInfo);
-int neoRADIO2FindHeaderPacket(uint8_t * data, int len);
 void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2LookForIdentHeader(neoRADIO2_DeviceInfo * devInfo);
 void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo);
-int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, neoRADIO2_destination * dest, uint8_t * data, int len);
+int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, uint8_t chip, uint8_t bank, uint8_t * data, uint8_t len);
 int neoRADIO2SendUARTBreak(neoRADIO2_DeviceInfo * devInfo);
-void neoRADIO2LookForDeviceReports(neoRADIO2_DeviceInfo * deviceInfo);
+void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2LookForStartHeader(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2SendSettingsHeader(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo);
+uint8_t neoRADIO2CalcCRC8(uint8_t * data, int len);
+void neoRADIO2CRC8_Init(void);
+neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t device, uint8_t bank);
+unsigned int neoRADIO2GetReportRate(neoRADIO2_DeviceInfo * deviceInfo, int device, int bank);
 
-int neoRADIO2GetDeviceNum(neoRADIO2frame_id id);
-int neoRADIO2GetChipNum(neoRADIO2frame_id id);
-neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t id);
-uint8_t neoRADIO2CalcCheckSum8(uint8_t * data, int len);
-uint16_t neoRADIO2CalcCheckSum16(uint16_t * data, int len);
-
-
-#define getUpperNibble(x) (0xF & (x >> 4))
-#define getLowerNibble(x) (0xF & (x))
+#define CRC_POLYNIMIAL 0x07
 
 #ifdef __cplusplus
 }

@@ -27,13 +27,15 @@ set(HEADER 	${HEADERS_PATH}/fifo.h
 			${HEADERS_PATH}/neoRADIO2_frames.h
 			${HEADERS_PATH}/neoRAD-IO2_PacketHandler.h
 			${HEADERS_PATH}/neoRAD-IO2-TC.h
+			${HEADERS_PATH}/neoRAD-IO2-AIN.h
+			${HEADERS_PATH}/neoRAD-IO2-AOUT.h
+			${HEADERS_PATH}/neoRAD-IO2-PWRRLY.h
             ${HIDAPI_HEADER_DIR}/hidapi.h)
 
 set(SRC ft260.c
 		fifo.c
 		neoRAD-IO2.c
 		neoRAD-IO2_PacketHandler.c
-		neoRAD-IO2-TC.c
         ${HIDAPI_DIR}/hid.c)
 
 if(APPLE)
