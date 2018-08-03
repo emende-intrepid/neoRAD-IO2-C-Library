@@ -77,7 +77,8 @@ typedef enum _neoRADIO2frame_deviceStatus {
 	NEORADIO2_STATUS_OK					=   0x00,
 	NEORADIO2_STATUS_ERROR				=   0x01,
 	NEORADIO2_STATUS_IDENTIFY			=   0x02,
-	NEORADIO2_STATUS_NEED_ID			=   0x03,
+	NEORADIO2_STATUS_READ_SETTINGS			=   0x03,
+	NEORADIO2_STATUS_NEED_ID			=   0xFF,
 } neoRADIO2frame_deviceStatus;
 
 typedef struct _neoRADIO2AOUTframe_data {

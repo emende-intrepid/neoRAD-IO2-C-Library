@@ -278,7 +278,7 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 
 void neoRADIO2SendSettingsHeader(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    for (unsigned int dev = 0; dev < deviceInfo->LastDevice; dev++)
+    for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
     {
         neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_READ_SETTINGS, dev, 0xFF, NULL, 0);
     }
