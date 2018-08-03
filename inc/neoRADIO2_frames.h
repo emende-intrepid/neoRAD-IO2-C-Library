@@ -48,7 +48,7 @@ typedef struct _neoRADIO2frame_header {
 typedef struct _neoRADIO2frame {
 	neoRADIO2frame_header header;
 	uint8_t data[64];
-	uint16_t checksum;
+	uint8_t crc;
 } PACKED  neoRADIO2frame;
 
 typedef struct _neoRADIO2frame_identify {
@@ -68,7 +68,7 @@ typedef enum _neoRADIO2frame_commands {
 	NEORADIO2_COMMAND_READ_CAL          =   0x08,
 	NEORADIO2_COMMAND_TOGGLE_LED        =   0x09,
 	NEORADIO2_COMMAND_BL_WRITEBUFFER    =   0xFA,
-	NEORADIO2_COMMAND_BL_WRITE          =   0xFB,
+	NEORADIO2_COMMAND_BL_WRITETOFLASH	=   0xFB,
 	NEORADIO2_COMMAND_BL_VERIFY		    =   0xFC,
 	NEORADIO2_COMMAND_ENTERBOOT         =   0xFF,
 } _neoRADIO2frame_commands;
@@ -77,6 +77,7 @@ typedef enum _neoRADIO2frame_deviceStatus {
 	NEORADIO2_STATUS_OK					=   0x00,
 	NEORADIO2_STATUS_ERROR				=   0x01,
 	NEORADIO2_STATUS_IDENTIFY			=   0x02,
+	NEORADIO2_STATUS_NEED_ID			=   0x03,
 } neoRADIO2frame_deviceStatus;
 
 typedef struct _neoRADIO2AOUTframe_data {
