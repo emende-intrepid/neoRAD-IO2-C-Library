@@ -73,10 +73,10 @@ int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
 
 void neoRADIO2LookForIdentHeader(neoRADIO2_DeviceInfo * deviceInfo)
 {
-
-	if (deviceInfo->rxDataCount > 0)
+	for (int i = 0; i < deviceInfo->rxDataCount; i++)
 	{
-		if(deviceInfo->rxDataBuffer->header.command_status == NEORADIO2_COMMAND_IDENTIFY)
+		if(deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_COMMAND_IDENTIFY && \
+			deviceInfo->rxDataBuffer[i].header.start_of_frame == 0xAA)
 		{
 			deviceInfo->State = neoRADIO2state_ConnectedWaitIdentResponse;
 		}
@@ -192,7 +192,7 @@ void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo)
     {
         memcpy(&rxdata[readsize], deviceInfo->rxfifo.ptr, len - readsize);
     }
-    while ((loc + sizeof(neoRADIO2frame_header)) < len)
+    while ((loc + minPacketSize) <= len)
     {
         if (rxdata[loc] == 0x55 || rxdata[loc] == 0xAA)
         {
@@ -267,7 +267,6 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 			deviceInfo->ChainList[dev][bank].hardwareRev_major = response->hardware_revMajor;
 			deviceInfo->ChainList[dev][bank].hardwareRev_minor = response->hardware_revMinor;
 
-
 			if (dev == 0 && bank == 0)
 			{
 				deviceInfo->State = neoRADIO2state_Connected;
@@ -295,45 +294,43 @@ void neoRADIO2SendSettingsHeader(neoRADIO2_DeviceInfo * deviceInfo)
 
 void neoRADIO2LookForStartHeader(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    if (deviceInfo->rxDataCount > 0)
+    for (int i = 0; i < deviceInfo->rxDataCount; i++)
     {
-        if(deviceInfo->rxDataBuffer[0].header.command_status == NEORADIO2_COMMAND_START)
-        {
-            if (neoRADIO2IdentifyChain(deviceInfo) != 0)
-            {
-                deviceInfo->State = neoRADIO2state_Disconnected;
-            }
-        }
+	    if(deviceInfo->rxDataBuffer[i].header.start_of_frame == 0xAA && \
+			deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_COMMAND_START)
+	    {
+		    if (neoRADIO2IdentifyChain(deviceInfo) != 0)
+		    {
+			    deviceInfo->State = neoRADIO2state_Disconnected;
+		    }
+	    }
     }
 }
 
 void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    if (deviceInfo->rxDataCount > 0)
+    for (int i = 0; i < deviceInfo->rxDataCount; i++)
     {
-        for (int i = 0; i < deviceInfo->rxDataCount; i++)
+        if (deviceInfo->rxDataBuffer[i].header.start_of_frame == 0x55 && \
+            deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_COMMAND_READ_SETTINGS)
         {
-        	if (deviceInfo->rxDataBuffer->header.start_of_frame == 0x55 && \
-        	    deviceInfo->rxDataBuffer->header.command_status == NEORADIO2_COMMAND_READ_SETTINGS)
-	        {
-                int device = deviceInfo->rxDataBuffer[i].header.device;
-                int bank = deviceInfo->rxDataBuffer[i].header.bank;
-                memcpy(&deviceInfo->ChainList[device][bank].settings, deviceInfo->rxDataBuffer->data, sizeof(neoRADIO2_deviceSettings));
-		        deviceInfo->ChainList[device][bank].settingsValid = 1;
-	        }
+            int device = deviceInfo->rxDataBuffer[i].header.device;
+            int bank = deviceInfo->rxDataBuffer[i].header.bank;
+            memcpy(&deviceInfo->ChainList[device][bank].settings, deviceInfo->rxDataBuffer->data, sizeof(neoRADIO2_deviceSettings));
+	        deviceInfo->ChainList[device][bank].settingsValid = 1;
         }
-        for (unsigned int dev = 0; dev < deviceInfo->LastDevice; dev++)
-        {
-            for (int unsigned bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
-            {
-                if (deviceInfo->ChainList[dev][bank].settingsValid == 0)
-                    if(deviceInfo->ChainList[dev][bank].status != NEORADIO2STATE_INBOOTLOADER)
-                        return;
-            }
-        }
-        deviceInfo->rxDataCount = 0;
-        deviceInfo->State = neoRADIO2state_Connected;
     }
+    for (unsigned int dev = 0; dev < deviceInfo->LastDevice; dev++)
+    {
+        for (int unsigned bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
+        {
+            if (deviceInfo->ChainList[dev][bank].settingsValid == 0)
+                if(deviceInfo->ChainList[dev][bank].status != NEORADIO2STATE_INBOOTLOADER)
+                    return;
+        }
+    }
+    deviceInfo->rxDataCount = 0;
+    deviceInfo->State = neoRADIO2state_Connected;
 }
 
 uint8_t neoRADIO2CalcCRC8(uint8_t * data, int len)
