@@ -42,12 +42,23 @@ int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
     uint8_t txBuf[59];
     int rxLen, txLen;
 
+
     rxLen = ft260ReceiveUART(&devInfo->usbDevice.ft260Device, rxBuf);
-    if(rxLen > 0)
+
+    while (rxLen > 0)
     {
-        FIFO_Push(&devInfo->rxfifo, rxBuf, rxLen);
+    	if (rxLen > FIFO_GetFreeSpace(&devInfo->rxfifo))
+	    {
+		    FIFO_Push(&devInfo->rxfifo, rxBuf, FIFO_GetFreeSpace(&devInfo->rxfifo));
+    		rxLen = 0;
+	    }
+	    else
+	    {
+		    FIFO_Push(&devInfo->rxfifo, rxBuf, rxLen);
+		    rxLen = ft260ReceiveUART(&devInfo->usbDevice.ft260Device, rxBuf);
+	    }
     }
-    else if (rxLen < 0)
+    if (rxLen < 0)
     {
         return rxLen;
     }
