@@ -88,6 +88,16 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
         result = ft260SetupUART(&devInfo->usbDevice.ft260Device, 250000, 1, 0);
     }
 
+
+	if (result == 0)
+	{
+		result = ft260ReceiveUART(&devInfo->usbDevice.ft260Device, buf);
+		while (result > 0)
+		{
+			result = ft260ReceiveUART(&devInfo->usbDevice.ft260Device, buf);
+		}
+	}
+
     if (result == 0)
     {
         result = neoRADIO2SendJumpToApp(devInfo);
@@ -113,9 +123,6 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
             break;
         case neoRADIO2state_ConnectedWaitForAppStart:
             neoRADIO2LookForStartHeader(devInfo);
-            break;
-        case neoRADIO2state_ConnectedWaitIdentHeader:
-            neoRADIO2LookForIdentHeader(devInfo);
             break;
         case neoRADIO2state_ConnectedWaitIdentResponse:
             neoRADIO2LookForIdentResponse(devInfo);

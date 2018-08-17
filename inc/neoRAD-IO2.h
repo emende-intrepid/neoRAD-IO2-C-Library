@@ -20,9 +20,9 @@ extern "C" {
 #define PRODUCT_ID 0x6030
 #endif
 
-#define NEORADIO2_RX_BUFFER_SIZE 8096
+#define NEORADIO2_RX_BUFFER_SIZE 256
 #define NEORADIO2_TX_BUFFER_SIZE 256
-#define NEORADIO2_RX_PACKET_BUFFER_SIZE 10
+#define NEORADIO2_RX_PACKET_BUFFER_SIZE (NEORADIO2_RX_BUFFER_SIZE / 6) + 1
 #define NEORADIO2_MAX_SUPPORTED_USB_DEVICES 8
 
 typedef struct _neoRADIO2_ChipInfo {
@@ -44,7 +44,6 @@ typedef struct _neoRADIO2_ChipInfo {
 typedef enum _neoRADIO2_RunStates {
     neoRADIO2state_Disconnected,
     neoRADIO2state_ConnectedWaitForAppStart,
-    neoRADIO2state_ConnectedWaitIdentHeader,
     neoRADIO2state_ConnectedWaitIdentResponse,
     neoRADIO2state_ConnectedWaitSettings,
     neoRADIO2state_Connected,
