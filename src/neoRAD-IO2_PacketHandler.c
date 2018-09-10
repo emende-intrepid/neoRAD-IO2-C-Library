@@ -113,7 +113,7 @@ int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, uint8_t
 void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
 {
 
-    for (unsigned int dev = 0; dev < deviceInfo->LastDevice; dev++)
+    for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
     {
     	uint8_t txBank = 0;
         for (unsigned int bank = 0; bank <= neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
@@ -231,7 +231,7 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 	for (int i = 0; i < deviceInfo->rxDataCount; i++)
 	{
 		if(deviceInfo->rxDataBuffer[i].header.start_of_frame == 0x55 && \
-			deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_COMMAND_IDENTIFY)
+			deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_STATUS_IDENTIFY)
 		{
 			uint8_t dev = deviceInfo->rxDataBuffer[i].header.device;
 			uint8_t bank = deviceInfo->rxDataBuffer[i].header.bank;
