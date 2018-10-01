@@ -116,7 +116,7 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
     for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
     {
     	uint8_t txBank = 0;
-        for (unsigned int bank = 0; bank <= neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
+        for (unsigned int bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
         {
             uint64_t reportRatems = deviceInfo->ChainList[dev][bank].settings.sample_rate;
             uint64_t lastReportTime = deviceInfo->ChainList[dev][bank].lastReadTimeus;
