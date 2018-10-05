@@ -12,6 +12,13 @@
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
+#pragma pack(push,1)
+#define PACKED 
+#else
+#define PACKED __attribute__((packed))
+#endif
+
 #if 1
 #define VENDOR_ID 0x093C
 #define PRODUCT_ID 0x1300
@@ -39,7 +46,7 @@ typedef struct _neoRADIO2_ChipInfo {
     uint8_t     settingsValid;
     uint64_t    lastReadTimeus;
     neoRADIO2_deviceSettings settings;
-} neoRADIO2_ChipInfo;
+} PACKED neoRADIO2_ChipInfo;
 
 typedef enum _neoRADIO2_RunStates {
     neoRADIO2state_Disconnected,
@@ -53,7 +60,7 @@ typedef struct _neoRADIO2_USBDevice
 {
 	ft260_device ft260Device;
 	char serial[6];
-} neoRADIO2_USBDevice;
+} PACKED neoRADIO2_USBDevice;
 
 typedef struct _neoRADIO2_DeviceInfo {
 	neoRADIO2_USBDevice usbDevice;
@@ -69,7 +76,7 @@ typedef struct _neoRADIO2_DeviceInfo {
     fifo_t txfifo;
     neoRADIO2frame rxDataBuffer[NEORADIO2_RX_PACKET_BUFFER_SIZE];
     uint8_t rxDataCount;
-} neoRADIO2_DeviceInfo;
+} PACKED neoRADIO2_DeviceInfo;
 
 extern const unsigned int neoRADIO2GetDeviceNumberOfBanks[];
 
