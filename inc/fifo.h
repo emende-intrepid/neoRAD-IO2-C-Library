@@ -23,7 +23,7 @@ extern "C" {
 typedef struct _fifo_t
 {
     uint8_t* ptr;
-    unsigned int maxSz;
+    volatile unsigned int maxSz;
     volatile unsigned int in;
     volatile unsigned int out;
     volatile unsigned int numItems;
