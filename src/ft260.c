@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#ifndef __ANDROID__
+//TODO support more devices, We need to be able to set Serial in ft260 to do this.
 int ft260FindDevices(ft260_device devices[], int len, int vid, int pid)
 {
     int deviceCount = 0;
@@ -61,7 +63,50 @@ int ft260FindDevices(ft260_device devices[], int len, int vid, int pid)
     hid_free_enumeration(deviceListPtr);
     return deviceCount;
 }
-
+#else
+int ft260FindDevices(ft260_device devices[], int len, int vid, int pid)
+{
+    int deviceCount = 0, hidrawCount = 0;
+    FILE* cmd ;
+    char result[32];
+    char* dev = "/dev/";
+    char hidraw[32];
+    char paths[32][32];
+    
+    //enumerates on its own, no need to do it ourselves
+	hid_init();
+    
+    cmd = popen("ls /dev | busybox grep hidraw", "r");
+    if(cmd != NULL)
+    {
+        while(fgets(result, sizeof(result), cmd))
+        {
+            //result from grep has new line at the end, get rid of it
+            result[strlen(result)-1] = '\0';
+            hidraw[0] = '\0';
+            strcpy(hidraw, dev);
+            strcat(hidraw, result);
+            strcpy(paths[hidrawCount], hidraw);
+            hidrawCount++;
+        }
+        
+        pclose(cmd);
+        
+        deviceCount = hidrawCount / 2;
+        
+        for(int i = 0; i < deviceCount; i++)
+        {
+            hidrawCount--;
+            strcpy(devices[i].PathInterface0, paths[hidrawCount]);
+            
+            hidrawCount--;
+            strcpy(devices[i].PathInterface1, paths[hidrawCount]);
+        }
+    }
+	
+    return deviceCount;
+}
+#endif
 
 int ft260OpenDevice(ft260_device* dev)
 {
@@ -77,6 +122,7 @@ int ft260OpenDevice(ft260_device* dev)
 
     return 0;
 }
+
 int ft260CloseDevice(ft260_device* dev)
 {
     if ( dev->HandleInterface0 != NULL)
@@ -87,6 +133,7 @@ int ft260CloseDevice(ft260_device* dev)
     hid_exit();
     return 0;
 }
+
 int ft260SetupUART(ft260_device* dev, unsigned int baud, unsigned int stop, unsigned int parity)
 {
     uint8_t buf[64];

@@ -1,1 +1,10 @@
 cmake-build-debug/
+android/obj
+android/build
+android/gen
+android/.gradle
+
+android/.idea/**/workspace.xml
+android/.idea/**/gradle.xml
+android/.idea/**/libraries
+android/.idea/**/modules
