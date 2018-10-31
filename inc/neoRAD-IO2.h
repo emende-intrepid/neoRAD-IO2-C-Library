@@ -91,6 +91,13 @@ int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2SerialToString(char * string, uint32_t serial);
 neoRADIO2_deviceTypes neoRADIO2GetGetDeviceType(neoRADIO2_DeviceInfo * deviceInfo, uint8_t device, uint8_t bank);
 
+#ifdef _MSC_VER
+#pragma pack(pop)
+#undef PACKED
+#else
+#undef PACKED
+#endif
+
 #ifdef __cplusplus
 }
 #endif

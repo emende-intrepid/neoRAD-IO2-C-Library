@@ -68,16 +68,24 @@ typedef enum _neoRADIO2frame_commands {
 	NEORADIO2_COMMAND_DONT_USE2         =   0x08,
 	NEORADIO2_COMMAND_TOGGLE_LED        =   0x09,
 	NEORADIO2_COMMAND_READ_PCBSN        =   0x10,
+
 	NEORADIO2_COMMAND_READ_CAL			=   0x20,
 	NEORADIO2_COMMAND_WRITE_CAL         =   0x21,
 	NEORADIO2_COMMAND_WRITE_CALPOINTS   =   0x22,
 	NEORADIO2_COMMAND_STORE_CAL			=   0x23,
-	NEORADIO2_COMMAND_READDATA_CAL		=   0x24,
+	NEORADIO2_COMMAND_READ_CALPOINTS    =   0x24,
+	NEORADIO2_COMMAND_READ_CAL_INFO     =   0x25,
+
+	NEORADIO2_COMMAND_WRITE_CHAN_NAME	=   0x30,
+	NEORADIO2_COMMAND_READ_CHAN_NAME	=   0x31,
+	NEORADIO2_COMMAND_WRITE_CANSETTINGS	=   0x32,
+	NEORADIO2_COMMAND_READ_CANSETTINGS	=   0x33,
+
 	NEORADIO2_COMMAND_BL_WRITEBUFFER    =   0xFA,
 	NEORADIO2_COMMAND_BL_WRITETOFLASH	=   0xFB,
 	NEORADIO2_COMMAND_BL_VERIFY		    =   0xFC,
 	NEORADIO2_COMMAND_ENTERBOOT         =   0xFF,
-} _neoRADIO2frame_commands;
+} neoRADIO2frame_commands;
 
 typedef enum _neoRADIO2frame_deviceStatus {
 	NEORADIO2_STATUS_SENSOR				=   0x00,
@@ -86,6 +94,11 @@ typedef enum _neoRADIO2frame_deviceStatus {
 	NEORADIO2_STATUS_READ_SETTINGS		=   0x03,
 	NEORADIO2_STATUS_READ_PCBSN 		=   0x04,
 	NEORADIO2_STATUS_CAL				=   0x05,
+	NEORADIO2_STATUS_CAL_STORE          =   0x06,
+	NEORADIO2_STATUS_CAL_INFO           =   0x07,
+	NEORADIO2_STATUS_CALPOINTS          =   0x08,
+	NEORADIO2_STATUS_READ_CHANNAME	=	0x09,
+	NEORADIO2_STATUS_READ_CANSETTING	=	0x0A,
 	NEORADIO2_STATUS_NEED_ID			=   0xFF,
 } neoRADIO2frame_deviceStatus;
 
@@ -107,11 +120,29 @@ typedef enum _neoRADIO2states {
 	NEORADIO2STATE_INBOOTLOADER		=1,
 } neoRADIO2states;
 
+// Used with NEORADIO2_COMMAND_READ_CAL/NEORADIO2_COMMAND_WRITE_CAL/NEORADIO2_COMMAND_WRITE_CALPOINTS
 typedef struct _neoRADIO2frame_calHeader {
-	uint8_t channel;
-	uint8_t range;
+	// read sets this, write needs this
+	uint8_t num_of_pts;
+	// read/write needs this. see cr_is_bitmask
+	uint16_t channel;
+	// read/write needs this. see cr_is_bitmask
+	uint16_t range;
+	// read sets this, write needs this. sizeof(CALIBRATION_TYPE) - TC = float, AIN = uint32
+	uint8_t cal_type_size;
+	// allows us to read/write without multiple calls for each channel/range.
+	uint8_t cr_is_bitmask;
+	// read sets this, write ignores this.
+	uint8_t cal_is_valid;
+
+	uint8_t _reserved[3];
 } PACKED neoRADIO2frame_calHeader;
 
+typedef enum _neoRADIO2CalType {
+	NEORADIO2CALTYPE_NONE = 0, // Reads raw sensor value without using calibration values
+	NEORADIO2CALTYPE_ENABLE, // Reads sensor value with calibration applied
+	NEORADIO2CALTYPE_ENHANCED, // Same as ENABLE but with slower sample rate
+} neoRADIO2CalType;
 
 #define NEORADIO2_DESTINATION_CHANNEL1 0x01
 #define NEORADIO2_DESTINATION_CHANNEL2 0x02

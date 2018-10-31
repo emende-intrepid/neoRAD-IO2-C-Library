@@ -42,7 +42,6 @@ int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
     uint8_t txBuf[59];
     int rxLen, txLen;
 
-
     rxLen = ft260ReceiveUART(&devInfo->usbDevice.ft260Device, rxBuf);
 
     while (rxLen > 0)
