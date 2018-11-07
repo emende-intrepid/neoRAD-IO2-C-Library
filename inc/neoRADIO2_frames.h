@@ -144,6 +144,11 @@ typedef enum _neoRADIO2CalType {
 	NEORADIO2CALTYPE_ENHANCED, // Same as ENABLE but with slower sample rate
 } neoRADIO2CalType;
 
+typedef struct _neoRADIO2frame_ChannelName {
+	uint8_t channel;
+	uint32_t name[14];
+} neoRADIO2frame_ChannelName;
+
 typedef enum _neoRADIO2_CANMsgType {
 	NEORADIO2_CANMSGTYPE_SID_CLASSIC = 0,
 	NEORADIO2_CANMSGTYPE_XID_CLASSIC = 1,
