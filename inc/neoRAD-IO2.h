@@ -14,7 +14,7 @@ extern "C" {
 
 #ifdef _MSC_VER
 #pragma pack(push,1)
-#define PACKED 
+#define PACKED
 #else
 #define PACKED __attribute__((packed))
 #endif
@@ -32,6 +32,12 @@ extern "C" {
 #define NEORADIO2_RX_PACKET_BUFFER_SIZE (NEORADIO2_RX_BUFFER_SIZE / 6) + 1
 #define NEORADIO2_MAX_SUPPORTED_USB_DEVICES 8
 
+typedef enum _neoRADIO2_SettingsStates {
+	neoRADIO2Settings_NeedsRead = 0,
+	neoRADIO2Settings_NeedsWrite = 1,
+	neoRADIO2Settings_Valid = 2,
+} neoRADIO2_SettingsStates;
+
 typedef struct _neoRADIO2_ChipInfo {
     uint32_t	serialNumber;
     uint16_t	manufacture_year;
@@ -43,20 +49,21 @@ typedef struct _neoRADIO2_ChipInfo {
     uint8_t		hardwareRev_major;
     uint8_t		hardwareRev_minor;
     uint8_t     status;
-    uint8_t     settingsValid;
+	uint8_t     settingsState;
     uint64_t    lastReadTimeus;
-    neoRADIO2_deviceSettings settings;
+	neoRADIO2_settings settings;
 } PACKED neoRADIO2_ChipInfo;
 
 typedef enum _neoRADIO2_RunStates {
     neoRADIO2state_Disconnected,
     neoRADIO2state_ConnectedWaitForAppStart,
     neoRADIO2state_ConnectedWaitIdentResponse,
-    neoRADIO2state_ConnectedWaitSettings,
+	neoRADIO2state_ConnectedWaitReadSettings,
+	neoRADIO2state_ConnectedWaitWriteSettings,
     neoRADIO2state_Connected,
 } neoRADIO2_RunStates;
 
-typedef struct _neoRADIO2_USBDevice 
+typedef struct _neoRADIO2_USBDevice
 {
 	ft260_device ft260Device;
 	char serial[6];
@@ -70,6 +77,7 @@ typedef struct _neoRADIO2_DeviceInfo {
     uint8_t LastBank;
     uint64_t Timeus;
     uint8_t isOnline;
+    uint8_t readCount;
     uint8_t rxbuffer[NEORADIO2_RX_BUFFER_SIZE];
     uint8_t txbuffer[NEORADIO2_TX_BUFFER_SIZE];
     fifo_t rxfifo;
@@ -84,7 +92,7 @@ int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int si
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus);
-int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, uint8_t device, uint8_t bank, neoRADIO2_deviceSettings * settings);
+int neoRADIO2SetSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online);
 int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo);

@@ -127,9 +127,12 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
         case neoRADIO2state_ConnectedWaitIdentResponse:
             neoRADIO2LookForIdentResponse(devInfo);
             break;
-        case neoRADIO2state_ConnectedWaitSettings:
-            neoRADIO2ReadSettings(devInfo);
-            break;
+	    case neoRADIO2state_ConnectedWaitReadSettings:
+		    neoRADIO2ReadSettings(devInfo);
+		    break;
+	    case neoRADIO2state_ConnectedWaitWriteSettings:
+		    neoRADIO2WriteSettings(devInfo);
+		    break;
         case neoRADIO2state_Connected:
             if (devInfo->isOnline)
                 neoRADIO2ProcessConnectedState(devInfo);
@@ -148,18 +151,10 @@ void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo)
 }
 
 
-int neoRADIO2SetDeviceSettings(neoRADIO2_DeviceInfo * deviceInfo, uint8_t device, uint8_t bank, neoRADIO2_deviceSettings * settings)
+int neoRADIO2SetSettings(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    for (int i = 0; i < 8; i++)
-    {
-        if (0x1 & bank >> i)
-        {
-            memcpy(&deviceInfo->ChainList[device][i].settings, settings, sizeof(neoRADIO2_deviceSettings));
-            deviceInfo->ChainList[device][i].settingsValid = 0;
-        }
-    }
-
-    return neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_WRITE_SETTINGS, device, bank, (uint8_t *)settings, sizeof(neoRADIO2_deviceSettings));
+	neoRADIO2StartWriteSettings(deviceInfo);
+	return 0;
 }
 
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online)
@@ -174,7 +169,7 @@ int neoRADIO2RequestSettings(neoRADIO2_DeviceInfo * deviceInfo)
         return -1;
     }
 
-    neoRADIO2SendSettingsHeader(deviceInfo);
+	neoRADIO2StartReadSettings(deviceInfo);
     return 0;
 }
 
@@ -184,7 +179,7 @@ int neoRADIO2SettingsValid(neoRADIO2_DeviceInfo * deviceInfo)
     {
         for (unsigned int bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
         {
-            if (deviceInfo->ChainList[dev][bank].settingsValid == 0)
+            if (deviceInfo->ChainList[dev][bank].settingsState == neoRADIO2Settings_Valid)
                 if(deviceInfo->ChainList[dev][bank].status != NEORADIO2STATE_INBOOTLOADER) //bootloader cannot read settigns
                     return 0;
         }

@@ -76,11 +76,6 @@ typedef enum _neoRADIO2frame_commands {
 	NEORADIO2_COMMAND_READ_CALPOINTS    =   0x24,
 	NEORADIO2_COMMAND_READ_CAL_INFO     =   0x25,
 
-	NEORADIO2_COMMAND_WRITE_CHAN_NAME	=   0x30,
-	NEORADIO2_COMMAND_READ_CHAN_NAME	=   0x31,
-	NEORADIO2_COMMAND_WRITE_CANSETTINGS	=   0x32,
-	NEORADIO2_COMMAND_READ_CANSETTINGS	=   0x33,
-
 	NEORADIO2_COMMAND_BL_WRITEBUFFER    =   0xFA,
 	NEORADIO2_COMMAND_BL_WRITETOFLASH	=   0xFB,
 	NEORADIO2_COMMAND_BL_VERIFY		    =   0xFC,
@@ -92,13 +87,12 @@ typedef enum _neoRADIO2frame_deviceStatus {
 	NEORADIO2_STATUS_FIRMWARE			=   0x01,
 	NEORADIO2_STATUS_IDENTIFY			=   0x02,
 	NEORADIO2_STATUS_READ_SETTINGS		=   0x03,
-	NEORADIO2_STATUS_READ_PCBSN 		=   0x04,
-	NEORADIO2_STATUS_CAL				=   0x05,
-	NEORADIO2_STATUS_CAL_STORE          =   0x06,
-	NEORADIO2_STATUS_CAL_INFO           =   0x07,
-	NEORADIO2_STATUS_CALPOINTS          =   0x08,
-	NEORADIO2_STATUS_READ_CHANNAME	=	0x09,
-	NEORADIO2_STATUS_READ_CANSETTING	=	0x0A,
+	NEORADIO2_STATUS_WRITE_SETTINGS		=	0x04,
+	NEORADIO2_STATUS_READ_PCBSN 		=   0x05,
+	NEORADIO2_STATUS_CAL				=   0x06,
+	NEORADIO2_STATUS_CAL_STORE          =   0x07,
+	NEORADIO2_STATUS_CAL_INFO           =   0x08,
+	NEORADIO2_STATUS_CALPOINTS          =   0x09,
 	NEORADIO2_STATUS_NEED_ID			=   0xFF,
 } neoRADIO2frame_deviceStatus;
 
@@ -109,7 +103,7 @@ typedef struct _neoRADIO2AOUTframe_data {
 } PACKED neoRADIO2AOUTframe_data;
 
 typedef struct _neoRADIO2_deviceSettings {
-	uint32_t sample_rate;
+	uint32_t poll_rate_ms;
 	uint32_t channel_1_config;
 	uint32_t channel_2_Config;
 	uint32_t channel_3_Config;
@@ -144,11 +138,6 @@ typedef enum _neoRADIO2CalType {
 	NEORADIO2CALTYPE_ENHANCED, // Same as ENABLE but with slower sample rate
 } neoRADIO2CalType;
 
-typedef struct _neoRADIO2frame_ChannelName {
-	uint8_t channel;
-	uint32_t name[14];
-} neoRADIO2frame_ChannelName;
-
 typedef enum _neoRADIO2_CANMsgType {
 	NEORADIO2_CANMSGTYPE_SID_CLASSIC = 0,
 	NEORADIO2_CANMSGTYPE_XID_CLASSIC = 1,
@@ -161,6 +150,37 @@ typedef struct _neoRADIO2_CAN_settings
 	uint8_t Location; //byte where the message starts
 	uint8_t msgType; //neoRADIO2_CANMsgType
 } __attribute__((packed)) neoRADIO2_CAN_settings;
+
+typedef struct _neoRADIO2settings_CAN
+{
+	uint32_t Arbid; //Arb Id
+	uint8_t Location; //byte where the message starts
+	uint8_t msgType; //neoRADIO2_CANMsgType
+} __attribute__((packed)) neoRADIO2settings_CAN;
+
+typedef struct _neoRADIO2settings_ChannelName {
+	uint8_t length;
+	uint8_t charSize;
+	union {
+		uint32_t u32[16];
+		uint16_t u16[16*2];
+		uint8_t u8[16*4];
+	} chars;
+} __attribute__((packed)) neoRADIO2Settings_ChannelName;
+
+typedef struct _neoRADIO2_settings {
+	neoRADIO2_deviceSettings config;
+	neoRADIO2Settings_ChannelName name1;
+	neoRADIO2Settings_ChannelName name2;
+	neoRADIO2Settings_ChannelName name3;
+	neoRADIO2settings_CAN can;
+} __attribute__((packed)) neoRADIO2_settings;
+
+#define NEORADIO2_SETTINGS_PARTSIZE 32
+typedef struct _neoRADIO2_SettingsPart {
+	uint8_t part;
+	uint8_t data[NEORADIO2_SETTINGS_PARTSIZE];
+} neoRADIO2_SettingsPart;
 
 #define NEORADIO2_DESTINATION_BANK1 0x01
 #define NEORADIO2_DESTINATION_BANK2 0x02

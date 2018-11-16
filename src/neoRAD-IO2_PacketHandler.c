@@ -117,7 +117,7 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
     	uint8_t txBank = 0;
         for (unsigned int bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
         {
-            uint64_t reportRatems = deviceInfo->ChainList[dev][bank].settings.sample_rate;
+            uint64_t reportRatems = deviceInfo->ChainList[dev][bank].settings.config.poll_rate_ms;
             uint64_t lastReportTime = deviceInfo->ChainList[dev][bank].lastReadTimeus;
             if (reportRatems != 0)
             {
@@ -266,23 +266,6 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 	}
 }
 
-void neoRADIO2SendSettingsHeader(neoRADIO2_DeviceInfo * deviceInfo)
-{
-    for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
-    {
-        neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_READ_SETTINGS, dev, 0xFF, NULL, 0);
-    }
-
-    for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
-    {
-        for (int unsigned bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
-        {
-            deviceInfo->ChainList[dev][bank].settingsValid = 0;
-        }
-    }
-    deviceInfo->State = neoRADIO2state_ConnectedWaitSettings;
-}
-
 void neoRADIO2LookForStartHeader(neoRADIO2_DeviceInfo * deviceInfo)
 {
     for (int i = 0; i < deviceInfo->rxDataCount; i++)
@@ -298,32 +281,149 @@ void neoRADIO2LookForStartHeader(neoRADIO2_DeviceInfo * deviceInfo)
     }
 }
 
+void neoRADIO2StartReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
+{
+	uint8_t buf[1] = {0};
+	for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
+	{
+		for (int unsigned bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
+		{
+			deviceInfo->ChainList[dev][bank].settingsState = neoRADIO2Settings_NeedsRead;
+		}
+	}
+
+	neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_READ_SETTINGS, 0, 0x1, buf, sizeof(buf));
+
+	deviceInfo->State = neoRADIO2state_ConnectedWaitReadSettings;
+}
+
+static const uint32_t SETTINGS_NUMPARTS = sizeof(neoRADIO2_settings)/NEORADIO2_SETTINGS_PARTSIZE;
+static const uint32_t SETTINGS_LASTPARTSIZE = sizeof(neoRADIO2_settings) % NEORADIO2_SETTINGS_PARTSIZE;
+
 void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo)
 {
+	uint8_t buf[1];
     for (int i = 0; i < deviceInfo->rxDataCount; i++)
     {
         if (deviceInfo->rxDataBuffer[i].header.start_of_frame == 0x55 && \
             deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_STATUS_READ_SETTINGS)
         {
-            int device = deviceInfo->rxDataBuffer[i].header.device;
-            int bank = deviceInfo->rxDataBuffer[i].header.bank;
-            memcpy(&deviceInfo->ChainList[device][bank].settings, deviceInfo->rxDataBuffer[i].data, sizeof(neoRADIO2_deviceSettings));
-	        deviceInfo->ChainList[device][bank].settingsValid = 1;
+            uint8_t device = deviceInfo->rxDataBuffer[i].header.device;
+            uint8_t bank = deviceInfo->rxDataBuffer[i].header.bank;
+
+            //copy new settings
+            uint8_t part = deviceInfo->rxDataBuffer[i].data[0];
+            uint8_t rxlen = deviceInfo->rxDataBuffer[i].header.len - 1;
+            uint8_t * newSettings = (uint8_t *) &deviceInfo->ChainList[device][bank].settings;
+
+            for (int n = 0; n < rxlen; n++)
+            {
+	            newSettings[NEORADIO2_SETTINGS_PARTSIZE * part + n] = deviceInfo->rxDataBuffer[i].data[n + 1];
+            }
+
+	        if (part == SETTINGS_NUMPARTS)
+	        {
+		        deviceInfo->ChainList[device][bank].settingsState = neoRADIO2Settings_Valid;
+		        if (bank == neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[device][bank].deviceType] - 1)
+		        {
+					if(device != deviceInfo->LastDevice)
+					{
+						device++;
+						bank = 0;
+						part = 0;
+					}
+					else
+					{
+						deviceInfo->State = neoRADIO2state_Connected;
+					}
+
+		        }
+		        else
+		        {
+		        	bank++;
+		        	part = 0;
+		        }
+	        }
+            else
+            {
+            	part++;
+            }
+
+	        buf[0] = part;
+	        neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_READ_SETTINGS, device, (1 << bank), buf, sizeof(buf));
         }
     }
-    for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
-    {
-        for (int unsigned bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
-        {
-            if (deviceInfo->ChainList[dev][bank].settingsValid == 0 && \
-                (deviceInfo->ChainList[dev][bank].status != NEORADIO2STATE_INBOOTLOADER))
-            	return;
-        }
-    }
-    deviceInfo->rxDataCount = 0;
-    deviceInfo->State = neoRADIO2state_Connected;
 }
 
+void neoRADIO2StartWriteSettings(neoRADIO2_DeviceInfo * deviceInfo)
+{
+	neoRADIO2_SettingsPart msg;
+	for (unsigned int dev = 0; dev <= deviceInfo->LastDevice; dev++)
+	{
+		for (int unsigned bank = 0; bank < neoRADIO2GetDeviceNumberOfBanks[deviceInfo->ChainList[dev][0].deviceType]; bank++)
+		{
+			if (deviceInfo->ChainList[dev][bank].settingsState == neoRADIO2Settings_NeedsWrite)
+			{
+				msg.part = 0;
+				uint8_t * newSettings = (uint8_t *) &deviceInfo->ChainList[dev][bank].settings;
+				int txlen  = NEORADIO2_SETTINGS_PARTSIZE;
+				for (int i = 0; i < txlen; i++)
+				{
+					msg.data[i] = newSettings[i];
+				}
+
+				deviceInfo->State = neoRADIO2state_ConnectedWaitWriteSettings;
+				neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_WRITE_SETTINGS, dev, (1 << bank), (uint8_t *)&msg, sizeof(msg));
+				return;
+			}
+		}
+	}
+
+	deviceInfo->State = neoRADIO2state_Connected;
+}
+
+void neoRADIO2WriteSettings(neoRADIO2_DeviceInfo * deviceInfo)
+{
+	neoRADIO2_SettingsPart msg;
+	for (int i = 0; i < deviceInfo->rxDataCount; i++)
+	{
+		if (deviceInfo->rxDataBuffer[i].header.start_of_frame == 0xAA && \
+            deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_COMMAND_WRITE_SETTINGS)
+		{
+			uint8_t device = deviceInfo->rxDataBuffer[i].header.device;
+			uint8_t bank = neoRADIO2GetBankPos(deviceInfo->rxDataBuffer[i].header.bank);
+
+			//copy new settings
+			uint8_t part = deviceInfo->rxDataBuffer[i].data[0];
+			uint8_t rxlen = deviceInfo->rxDataBuffer[i].header.len - 1;
+			uint8_t * newSettings = (uint8_t *) &deviceInfo->ChainList[device][bank].settings;
+
+
+			if (part == SETTINGS_NUMPARTS)
+			{
+				deviceInfo->ChainList[device][bank].settingsState = neoRADIO2Settings_Valid;
+				neoRADIO2StartWriteSettings(deviceInfo);
+			}
+			else
+			{
+				uint8_t * newSettings = (uint8_t *) &deviceInfo->ChainList[device][bank].settings;
+				part++;
+				int txlen = NEORADIO2_SETTINGS_PARTSIZE;
+				if (part == SETTINGS_NUMPARTS)
+					txlen = SETTINGS_LASTPARTSIZE;
+
+				msg.part = part;
+				for (int n = 0; n < txlen; n++)
+				{
+					msg.data[n] = newSettings[NEORADIO2_SETTINGS_PARTSIZE * part + n];
+				}
+
+				neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_WRITE_SETTINGS, device, (1 << bank), (uint8_t *)&msg, txlen + 1);
+			}
+
+		}
+	}
+}
 uint8_t neoRADIO2CalcCRC8(uint8_t * data, int len)
 {
 	if (neoRADIO2CRC8Table[1] != CRC_POLYNIMIAL)
@@ -349,4 +449,28 @@ void neoRADIO2CRC8_Init(void)
 		}
 		neoRADIO2CRC8Table[i] = crc & 0xFF;
 	}
+}
+
+uint8_t neoRADIO2GetBankPos(uint8_t x)
+{
+	switch (x)
+	{
+		case 1:
+			return 0;
+		case 2:
+			return 1;
+		case 4:
+			return 2;
+		case 8:
+			return 3;
+		case 16:
+			return 4;
+		case 32:
+			return 5;
+		case 64:
+			return 6;
+		case 128:
+			return 7;
+	}
+	return 0;
 }
