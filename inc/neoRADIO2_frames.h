@@ -149,14 +149,14 @@ typedef struct _neoRADIO2_CAN_settings
 	uint32_t Arbid; //Arb Id
 	uint8_t Location; //byte where the message starts
 	uint8_t msgType; //neoRADIO2_CANMsgType
-} __attribute__((packed)) neoRADIO2_CAN_settings;
+} PACKED neoRADIO2_CAN_settings;
 
 typedef struct _neoRADIO2settings_CAN
 {
 	uint32_t Arbid; //Arb Id
 	uint8_t Location; //byte where the message starts
 	uint8_t msgType; //neoRADIO2_CANMsgType
-} __attribute__((packed)) neoRADIO2settings_CAN;
+} PACKED neoRADIO2settings_CAN;
 
 typedef struct _neoRADIO2settings_ChannelName {
 	uint8_t length;
@@ -166,7 +166,7 @@ typedef struct _neoRADIO2settings_ChannelName {
 		uint16_t u16[16*2];
 		uint8_t u8[16*4];
 	} chars;
-} __attribute__((packed)) neoRADIO2Settings_ChannelName;
+} PACKED neoRADIO2Settings_ChannelName;
 
 typedef struct _neoRADIO2_settings {
 	neoRADIO2_deviceSettings config;
@@ -174,7 +174,7 @@ typedef struct _neoRADIO2_settings {
 	neoRADIO2Settings_ChannelName name2;
 	neoRADIO2Settings_ChannelName name3;
 	neoRADIO2settings_CAN can;
-} __attribute__((packed)) neoRADIO2_settings;
+} PACKED neoRADIO2_settings;
 
 #define NEORADIO2_SETTINGS_PARTSIZE 32
 typedef struct _neoRADIO2_SettingsPart {
