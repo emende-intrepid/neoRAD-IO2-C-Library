@@ -395,8 +395,6 @@ void neoRADIO2WriteSettings(neoRADIO2_DeviceInfo * deviceInfo)
 
 			//copy new settings
 			uint8_t part = deviceInfo->rxDataBuffer[i].data[0];
-			uint8_t rxlen = deviceInfo->rxDataBuffer[i].header.len - 1;
-			uint8_t * newSettings = (uint8_t *) &deviceInfo->ChainList[device][bank].settings;
 
 
 			if (part == SETTINGS_NUMPARTS)
