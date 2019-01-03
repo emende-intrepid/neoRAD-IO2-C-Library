@@ -21,7 +21,7 @@ public class ChipInfo extends NativeLinked{
         hardwareRevMajor = bb.get() & 0xFF;
         hardwareRevMinor = bb.get() & 0xFF;
         status = bb.get() & 0xFF;
-        settingsValid = bb.get() & 0xFF;
+        settingsState = bb.get() & 0xFF;
         lastReadTimeUs = bb.getLong();
         settings.fromNative(bb);
     }
@@ -39,7 +39,7 @@ public class ChipInfo extends NativeLinked{
         bb.put((byte)hardwareRevMajor);
         bb.put((byte)hardwareRevMinor);
         bb.put((byte)status);
-        bb.put((byte)settingsValid);
+        bb.put((byte) settingsState);
         bb.putLong(lastReadTimeUs);
         settings.toNative(bb);
     }
@@ -64,9 +64,9 @@ public class ChipInfo extends NativeLinked{
 
     public int status;
 
-    public int settingsValid;
+    public int settingsState;
 
     public long lastReadTimeUs;
 
-    public DeviceSettings settings = new DeviceSettings();
+    public Settings settings = new Settings();
 }

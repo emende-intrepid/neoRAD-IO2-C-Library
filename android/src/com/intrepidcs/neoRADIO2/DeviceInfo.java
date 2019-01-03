@@ -27,6 +27,7 @@ public class DeviceInfo extends NativeLinked {
         lastBank = bb.get() & 0xFF;
         timeUs = bb.getLong();
         online = bb.get() & 0xFF;
+        readCount = bb.get() & 0xFF;
         for(int i = 0; i < RX_BUFFER_SIZE; i++) {
             rxBuffer[i] = bb.get() & 0xFF;
         }
@@ -56,6 +57,7 @@ public class DeviceInfo extends NativeLinked {
         bb.put((byte)lastBank);
         bb.putLong(timeUs);
         bb.put((byte)online);
+        bb.put((byte)readCount);
         for(int i = 0; i < RX_BUFFER_SIZE; i++){
             bb.put((byte)rxBuffer[i]);
         }
@@ -77,8 +79,9 @@ public class DeviceInfo extends NativeLinked {
         public static final int Disconnected = 0;
         public static final int ConnectedWaitForAppStart = 1;
         public static final int ConnectedWaitIdentResponse = 2;
-        public static final int ConncectedWaitSettings = 3;
-        public static final int Connected = 4;
+        public static final int ConnectedWaitReadSettings = 3;
+        public static final int ConnectedWaitWriteSettings = 4;
+        public static final int Connected = 5;
     }
 
     public static final int RX_BUFFER_SIZE = 256;
@@ -102,6 +105,8 @@ public class DeviceInfo extends NativeLinked {
     public long timeUs;
 
     public int online;
+
+    public int readCount;
 
     public int[] rxBuffer = new int[RX_BUFFER_SIZE];
 

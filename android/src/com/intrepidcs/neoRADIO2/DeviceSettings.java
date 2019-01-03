@@ -1,7 +1,5 @@
 package com.intrepidcs.neoRADIO2;
 
-import com.intrepidcs.neoRADIO2.NativeLinked;
-
 import java.nio.ByteBuffer;
 
 public class DeviceSettings extends NativeLinked {
@@ -13,7 +11,7 @@ public class DeviceSettings extends NativeLinked {
     @Override
     public void fromNative(ByteBuffer bb) {
         bb.order(BYTE_ORDER);
-        sampleRate = bb.getInt();
+        pollRate = bb.getInt();
         channel1Config = bb.getInt();
         channel2Config = bb.getInt();
         channel3Config = bb.getInt();
@@ -22,15 +20,15 @@ public class DeviceSettings extends NativeLinked {
     @Override
     public void toNative(ByteBuffer bb) {
         bb.order(BYTE_ORDER);
-        bb.putInt(sampleRate);
+        bb.putInt(pollRate);
         bb.putInt(channel1Config);
         bb.putInt(channel2Config);
         bb.putInt(channel3Config);
     }
 
-    public int sampleRate;
+    public int pollRate;
 
-    //TC
+    //TC and AIN
     public int channel1Config;
 
     //AOUT and DIO

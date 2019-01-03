@@ -161,15 +161,9 @@ jint API_FUNC(ProcessIncomingData, int deviceNum)
     return result;
 }
 
-jint API_FUNC(SetDeviceSettings, int deviceNum, uint8_t device, uint8_t bank, jobject deviceSettings)
+jint API_FUNC(SetSettings, int deviceNum)
 {
-    JavaEnvInfo* envInfo = JavaEnvInfo::getEnvInfo(env);
-    neoRADIO2_deviceSettings settings;
-    jobject buffer = env->NewDirectByteBuffer((unsigned char*)&settings, sizeof(neoRADIO2_deviceSettings));
-    env->CallVoidMethod(deviceSettings, envInfo->jDeviceSettings.toNativeID, buffer);
-    env->DeleteLocalRef(buffer);
-    
-    return neoRADIO2SetDeviceSettings(&deviceInfos[deviceNum], device, bank, &settings);
+    return neoRADIO2SetSettings(&deviceInfos[deviceNum]);
 }
 
 void API_FUNC(SetOnline, int deviceNum, int online)
@@ -187,9 +181,10 @@ jint API_FUNC(SettingsValid, int deviceNum)
     return neoRADIO2SettingsValid(&deviceInfos[deviceNum]);
 }
 
-jint API_FUNC(GetDeviceType, int deviceNum, uint8_t device, uint8_t bank)
+jint API_FUNC(GetDeviceType, int deviceNum, int i)
 {
-    return neoRADIO2GetGetDeviceType(&deviceInfos[deviceNum], device, bank);
+    neoRADIO2frame_header header = deviceInfos[deviceNum].rxDataBuffer[i].header;
+    return neoRADIO2GetGetDeviceType(&deviceInfos[deviceNum], header.device, header.bank);
 }
 
 jint API_FUNC(GetDeviceState, int deviceNum)
@@ -202,6 +197,47 @@ jint API_FUNC(HasRxData, int deviceNum)
     return (deviceInfos[deviceNum].rxDataCount > 0 && deviceInfos[deviceNum].State == neoRADIO2state_Connected) ? 1 : 0;
 }
 
+jint API_FUNC(GetRxDataCount, int deviceNum)
+{
+    return deviceInfos[deviceNum].rxDataCount;
+}
+
+jint API_FUNC(GetFrameHeaderStartOfFrame, int deviceNum, int i)
+{
+    return deviceInfos[deviceNum].rxDataBuffer[i].header.start_of_frame;
+}
+
+jint API_FUNC(GetTCAINConfig, int deviceNum, int i)
+{
+    neoRADIO2frame_header header = deviceInfos[deviceNum].rxDataBuffer[i].header;
+    return deviceInfos[deviceNum].ChainList[header.device][header.bank].settings.config.channel_1_config;
+}
+
+jfloat API_FUNC(GetRxFloatData, int deviceNum, int i)
+{
+    return ((bytesToFloat*)deviceInfos[deviceNum].rxDataBuffer[i].data)->fp;
+}
+
+jint API_FUNC(GetDeviceNumInDeviceChain, int deviceNum, int i)
+{
+    return deviceInfos[deviceNum].rxDataBuffer[i].header.device;
+}
+
+jint API_FUNC(GetBankNum, int deviceNum, int i)
+{
+    return deviceInfos[deviceNum].rxDataBuffer[i].header.bank;
+}
+
+jint API_FUNC(GetFirmwareVersionMaj, int deviceNum, int device, int bank)
+{
+    return deviceInfos[deviceNum].ChainList[device][bank].firmwareVersion_major;
+}
+
+jint API_FUNC(GetFirmwareVersionMin, int deviceNum, int device, int bank)
+{
+    return deviceInfos[deviceNum].ChainList[device][bank].firmwareVersion_minor;
+}
+    
 void API_FUNC(DeviceInfoFromNative, int deviceNum, jobject devInfo)
 {
     JavaEnvInfo* envInfo = JavaEnvInfo::getEnvInfo(env);
