@@ -96,18 +96,21 @@ typedef enum _neoRADIO2frame_deviceStatus {
 	NEORADIO2_STATUS_NEED_ID			=   0xFF,
 } neoRADIO2frame_deviceStatus;
 
-typedef struct _neoRADIO2AOUTframe_data {
-	uint16_t DAC11;
-	uint16_t DAC12;
-	uint16_t DAC23;
-} PACKED neoRADIO2AOUTframe_data;
-
 typedef struct _neoRADIO2_deviceSettings {
 	uint32_t poll_rate_ms;
 	uint32_t channel_1_config;
 	uint32_t channel_2_Config;
 	uint32_t channel_3_Config;
 } PACKED neoRADIO2_deviceSettings;
+
+typedef union _neoRADIO2AOUT_channelConfig{
+	uint32_t u32;
+	struct {
+		uint16_t initOutputValue;
+		uint8_t initEnabled;
+		uint8_t enabled;
+	} data;
+} neoRADIO2AOUT_channelConfig;
 
 typedef enum _neoRADIO2states {
 	NEORADIO2STATE_RUNNING          =0,
@@ -133,9 +136,9 @@ typedef struct _neoRADIO2frame_calHeader {
 } PACKED neoRADIO2frame_calHeader;
 
 typedef enum _neoRADIO2CalType {
-	NEORADIO2CALTYPE_NONE = 0, // Reads raw sensor value without using calibration values
-	NEORADIO2CALTYPE_ENABLE, // Reads sensor value with calibration applied
-	NEORADIO2CALTYPE_ENHANCED, // Same as ENABLE but with slower sample rate
+	NEORADIO2CALTYPE_ENABLED = 0, // Reads raw sensor value with using calibration values. This is the same as reading without a caltype
+	NEORADIO2CALTYPE_NOCAL = 1, // Reads sensor value without calibration applied
+	NEORADIO2CALTYPE_NOCAL_ENHANCED = 2, // Same as ENABLE but with slower sample rate
 } neoRADIO2CalType;
 
 typedef enum _neoRADIO2_CANMsgType {
@@ -149,14 +152,14 @@ typedef struct _neoRADIO2_CAN_settings
 	uint32_t Arbid; //Arb Id
 	uint8_t Location; //byte where the message starts
 	uint8_t msgType; //neoRADIO2_CANMsgType
-} PACKED neoRADIO2_CAN_settings;
+} __attribute__((packed)) neoRADIO2_CAN_settings;
 
 typedef struct _neoRADIO2settings_CAN
 {
 	uint32_t Arbid; //Arb Id
 	uint8_t Location; //byte where the message starts
 	uint8_t msgType; //neoRADIO2_CANMsgType
-} PACKED neoRADIO2settings_CAN;
+} __attribute__((packed)) neoRADIO2settings_CAN;
 
 typedef struct _neoRADIO2settings_ChannelName {
 	uint8_t length;
@@ -166,7 +169,7 @@ typedef struct _neoRADIO2settings_ChannelName {
 		uint16_t u16[16*2];
 		uint8_t u8[16*4];
 	} chars;
-} PACKED neoRADIO2Settings_ChannelName;
+} __attribute__((packed)) neoRADIO2Settings_ChannelName;
 
 typedef struct _neoRADIO2_settings {
 	neoRADIO2_deviceSettings config;
@@ -174,7 +177,7 @@ typedef struct _neoRADIO2_settings {
 	neoRADIO2Settings_ChannelName name2;
 	neoRADIO2Settings_ChannelName name3;
 	neoRADIO2settings_CAN can;
-} PACKED neoRADIO2_settings;
+} __attribute__((packed)) neoRADIO2_settings;
 
 #define NEORADIO2_SETTINGS_PARTSIZE 32
 typedef struct _neoRADIO2_SettingsPart {
