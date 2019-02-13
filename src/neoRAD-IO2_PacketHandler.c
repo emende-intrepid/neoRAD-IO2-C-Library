@@ -36,6 +36,7 @@ int neoRADIO2SendJumpToApp(neoRADIO2_DeviceInfo * deviceInfo)
     }
 }
 
+#ifndef RADIO2_EMBEDDED_LIB
 int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
 {
     uint8_t rxBuf[62];
@@ -80,6 +81,52 @@ int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo)
 
     return 0;
 }
+#else
+int neoRADIO2GetNewData(neoRADIO2_DeviceInfo* devInfo)
+{
+	uint8_t rxBuf[62];
+	uint8_t txBuf[59];
+	int rxLen, txLen;
+
+	rxLen = RADIO2_Interface_Pop(rxBuf, sizeof(rxBuf));
+
+	while (rxLen > 0)
+	{
+		if (rxLen > FIFO_GetFreeSpace(&devInfo->rxfifo))
+		{
+			FIFO_Push(&devInfo->rxfifo, rxBuf, FIFO_GetFreeSpace(&devInfo->rxfifo));
+			rxLen = 0;
+		}
+		else
+		{
+			FIFO_Push(&devInfo->rxfifo, rxBuf, rxLen);
+			rxLen = RADIO2_Interface_Pop(rxBuf, sizeof(rxBuf));
+		}
+	}
+	if (rxLen < 0)
+	{
+		return rxLen;
+	}
+
+	txLen = FIFO_GetOneShotReadSize(&devInfo->txfifo);
+	if (txLen > 0)
+	{
+		if (txLen > sizeof(txBuf))
+			txLen = sizeof(txBuf);
+		txLen = RADIO2_Interface_Push(FIFO_GetReadPtr(&devInfo->txfifo), txLen);
+		if (txLen < 0)
+		{
+			return -1;
+		}
+		else
+		{
+			FIFO_IncrementOutPtr(&devInfo->txfifo, txLen);
+		}
+	}
+
+	return 0;
+}
+#endif /* RADIO2_EMBEDDED_LIB */
 
 int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, uint8_t device, uint8_t bank, uint8_t * data, uint8_t len)
 {
@@ -136,6 +183,7 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
     }
 }
 
+#ifndef RADIO2_EMBEDDED_LIB
 int neoRADIO2SendUARTBreak(neoRADIO2_DeviceInfo * devInfo)
 {
     int result;
@@ -156,6 +204,8 @@ int neoRADIO2SendUARTBreak(neoRADIO2_DeviceInfo * devInfo)
     return ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
 
 }
+#endif /* RADIO2_EMBEDDED_LIB */
+
 void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo)
 {
     unsigned int len = 0;

@@ -15,6 +15,7 @@
 */
 const unsigned int neoRADIO2GetDeviceNumberOfBanks[] = {8, 8, 1, 8, 8, 1};
 
+#ifndef RADIO2_EMBEDDED_LIB
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size)
 {
     int result = 0;
@@ -104,6 +105,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
     }
     return result;
 }
+#endif /* RADIO2_EMBEDDED_LIB */
 
 //This must be called every 1 ms
 int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus)
@@ -138,18 +140,22 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
                 neoRADIO2ProcessConnectedState(devInfo);
             break;
         default:
+#ifndef RADIO2_EMBEDDED_LIB
             neoRADIO2CloseDevice(devInfo);
+#endif
+            break;
     }
     return result;
 }
 
+#ifndef RADIO2_EMBEDDED_LIB
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo)
 {
     ft260CloseDevice(&devInfo->usbDevice.ft260Device);
     memset(devInfo, 0, sizeof(neoRADIO2_DeviceInfo));
     devInfo->State = neoRADIO2state_Disconnected;
 }
-
+#endif /* RADIO2_EMBEDDED_LIB */
 
 int neoRADIO2SetSettings(neoRADIO2_DeviceInfo * deviceInfo)
 {

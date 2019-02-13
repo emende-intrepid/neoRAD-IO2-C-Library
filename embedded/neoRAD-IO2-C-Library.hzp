@@ -1,0 +1,81 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="neoRAD-IO2-C-Library" target="8" version="2">
+  <project Name="neoRAD-IO2-C-Library">
+    <configuration
+      CMSIS_CORE="Yes"
+      Name="Common"
+      Placement="Flash"
+      Target="ATSAMV71Q21B"
+      arm_architecture="v7EM"
+      arm_core_type="Cortex-M4"
+      arm_endian="Little"
+      arm_fp_abi="Hard"
+      arm_fpu_type="FPv5-D16"
+      arm_interwork="No"
+      arm_simulator_memory_simulation_filename="$(TargetsDir)/SAM_V/Simulator/SAM_V_SimulatorMemory_$(HostOS)_$(HostArch)$(HostDLLExt)"
+      arm_simulator_memory_simulation_parameter="SAM V,SAM V71;FLASH,0x00400000,0x00200000,ROM;RAM,0x20400000,0x00060000,RAM"
+      arm_target_debug_interface_type="ADIv5"
+      arm_target_device_name="ATSAMV71Q21B"
+      arm_target_interface_type="SWD"
+      arm_target_loader_applicable_loaders="Flash"
+      arm_target_loader_default_loader="Flash"
+      c_preprocessor_definitions="RADIO2_RADIO2_EMBEDDED_LIB"
+      c_user_include_directories="$(DeviceIncludePath);$(ProjectDir)/../inc"
+      debug_register_definition_file="$(DeviceRegisterDefinitionFile)"
+      linker_memory_map_file="$(DeviceMemoryMapFile)"
+      linker_section_placement_file="$(StudioDir)/targets/Cortex_M/flash_placement_tcm.xml"
+      macros="DeviceIncludePath=$(TargetsDir)/SAM_V/CMSIS/samv71b/include;DeviceHeaderFile=$(TargetsDir)/SAM_V/CMSIS/samv71b/include/sam.h;DeviceMemoryMapFile=$(TargetsDir)/SAM_V/XML/ATSAMV71Q21B_MemoryMap.xml;DeviceRegisterDefinitionFile=$(TargetsDir)/SAM_V/XML/ATSAMV71Q21B_Registers.xml;DeviceSystemFile=$(TargetsDir)/SAM_V/CMSIS/samv71b/source/system_SAMV71.c;DeviceVectorsFile=$(TargetsDir)/SAM_V/Source/ATSAMV71Q21B_Vectors.s;DeviceFamily=SAM V;DeviceSubFamily=SAM V71;DeviceLoaderFile=$(TargetsDir)/SAM_V/Loader/SAM_V71_Loader.elf"
+      package_dependencies="SAM_V"
+      project_directory=""
+      project_type="Library"
+      property_groups_file_path="$(TargetsDir)/SAM_V/XML/property_groups.xml"
+      target_get_partname_script="GetPartName()"
+      target_match_partname_script="MatchPartName(&quot;$(Target)&quot;)"
+      target_reset_script="Reset();"
+      target_trace_initialize_script="EnableTrace(&quot;$(TraceInterfaceType)&quot;)" />
+    <configuration
+      Name="Flash"
+      arm_target_flash_loader_file_path="$(DeviceLoaderFile)" />
+    <folder Name="src">
+      <file file_name="../src/fifo.c" />
+      <file file_name="../src/neoRAD-IO2.c" />
+      <file file_name="../src/neoRAD-IO2_PacketHandler.c" />
+      <file file_name="radio2_interface.h" />
+    </folder>
+    <folder Name="include">
+      <file file_name="../inc/fifo.h" />
+      <file file_name="../inc/neoRAD-IO2.h" />
+      <file file_name="../inc/neoRADIO2_frames.h" />
+      <file file_name="../inc/neoRAD-IO2_PacketHandler.h" />
+      <file file_name="../inc/neoRAD-IO2-AIN.h" />
+      <file file_name="../inc/neoRAD-IO2-AOUT.h" />
+      <file file_name="../inc/neoRAD-IO2-PWRRLY.h" />
+      <file file_name="../inc/neoRAD-IO2-TC.h" />
+    </folder>
+  </project>
+  <configuration Name="THUMB Debug" inherited_configurations="THUMB;Debug" />
+  <configuration
+    Name="THUMB"
+    Platform="ARM"
+    arm_instruction_set="Thumb"
+    arm_library_instruction_set="Thumb"
+    c_preprocessor_definitions="__THUMB"
+    hidden="Yes" />
+  <configuration
+    Name="Debug"
+    c_preprocessor_definitions="DEBUG"
+    gcc_debugging_level="Level 3"
+    gcc_omit_frame_pointer="Yes"
+    gcc_optimization_level="None"
+    hidden="Yes" />
+  <configuration
+    Name="THUMB Release"
+    inherited_configurations="THUMB;Release" />
+  <configuration
+    Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    gcc_debugging_level="None"
+    gcc_omit_frame_pointer="Yes"
+    gcc_optimization_level="Level 1"
+    hidden="Yes" />
+</solution>
