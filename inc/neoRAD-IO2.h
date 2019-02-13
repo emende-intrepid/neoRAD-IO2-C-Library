@@ -1,5 +1,7 @@
 #pragma once
+#ifndef RADIO2_EMBEDDED_LIB
 #include "ft260.h"
+#endif /* RADIO2_EMBEDDED_LIB */
 #include "stdint.h"
 #include "neoRAD-IO2-TC.h"
 #include "neoRAD-IO2-AIN.h"
@@ -63,14 +65,18 @@ typedef enum _neoRADIO2_RunStates {
     neoRADIO2state_Connected,
 } neoRADIO2_RunStates;
 
+#ifndef RADIO2_EMBEDDED_LIB
 typedef struct _neoRADIO2_USBDevice
 {
 	ft260_device ft260Device;
 	char serial[6];
 } PACKED neoRADIO2_USBDevice;
+#endif /* RADIO2_EMBEDDED_LIB */
 
 typedef struct _neoRADIO2_DeviceInfo {
+#ifndef RADIO2_EMBEDDED_LIB
 	neoRADIO2_USBDevice usbDevice;
+#endif /* RADIO2_EMBEDDED_LIB */
     neoRADIO2_ChipInfo ChainList[8][8];
     neoRADIO2_RunStates State;
     uint8_t LastDevice;
@@ -88,9 +94,11 @@ typedef struct _neoRADIO2_DeviceInfo {
 
 extern const unsigned int neoRADIO2GetDeviceNumberOfBanks[];
 
+#ifndef RADIO2_EMBEDDED_LIB
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size);
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo);
+#endif /* RADIO2_EMBEDDED_LIB */
 int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTimeus);
 int neoRADIO2SetSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2SetOnline(neoRADIO2_DeviceInfo * deviceInfo, int online);
