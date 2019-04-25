@@ -19,6 +19,7 @@ typedef enum _neoRADIO2_deviceTypes {
 	NEORADIO2_DEVTYPE_AIN		= 3,
 	NEORADIO2_DEVTYPE_AOUT		= 4,
 	NEORADIO2_DEVTYPE_CANHUB	= 5,
+	NEORADIO2_DEVTYPE_BADGE		= 6,
 	NEORADIO2_DEVTYPE_HOST  	= 0xFF,
 } neoRADIO2_deviceTypes;
 
@@ -100,8 +101,8 @@ typedef enum _neoRADIO2frame_deviceStatus {
 typedef struct _neoRADIO2_deviceSettings {
 	uint32_t poll_rate_ms;
 	uint32_t channel_1_config;
-	uint32_t channel_2_Config;
-	uint32_t channel_3_Config;
+	uint32_t channel_2_config;
+	uint32_t channel_3_config;
 } PACKED neoRADIO2_deviceSettings;
 
 typedef union _neoRADIO2AOUT_channelConfig{
@@ -126,14 +127,8 @@ typedef struct _neoRADIO2frame_calHeader {
 	uint16_t channel;
 	// read/write needs this. see cr_is_bitmask
 	uint16_t range;
-	// read sets this, write needs this. sizeof(CALIBRATION_TYPE) - TC = float, AIN = uint32
-	uint8_t cal_type_size;
-	// allows us to read/write without multiple calls for each channel/range.
-	uint8_t cr_is_bitmask;
 	// read sets this, write ignores this.
 	uint8_t cal_is_valid;
-
-	uint8_t _reserved[3];
 } PACKED neoRADIO2frame_calHeader;
 
 typedef enum _neoRADIO2CalType {
@@ -148,12 +143,6 @@ typedef enum _neoRADIO2_CANMsgType {
 	NEORADIO2_CANMSGTYPE_SID_FD = 2,
 	NEORADIO2_CANMSGTYPE_XID_FD = 3,
 } neoRADIO2_CANMsgType;
-typedef struct _neoRADIO2_CAN_settings
-{
-	uint32_t Arbid; //Arb Id
-	uint8_t Location; //byte where the message starts
-	uint8_t msgType; //neoRADIO2_CANMsgType
-} PACKED neoRADIO2_CAN_settings;
 
 typedef struct _neoRADIO2settings_CAN
 {
