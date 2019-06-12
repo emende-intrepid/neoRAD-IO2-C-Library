@@ -7,7 +7,7 @@
 #include "neoRAD-IO2-AIN.h"
 #include "neoRAD-IO2-AOUT.h"
 #include "neoRAD-IO2-PWRRLY.h"
-#include "neoRADIO2_frames.h"
+#include "radio2_frames.h"
 #include "fifo.h"
 
 #ifdef __cplusplus
@@ -21,6 +21,18 @@ extern "C" {
 #define PACKED __attribute__((packed))
 #endif
 
+//#define SUPPORT_DEBUGGING
+
+#ifdef SUPPORT_DEBUGGING
+#ifdef RADIO2_EMBEDDED_LIB
+#define DEBUG_PRINTF(fmt, ...) debug_printf(fmt, ...)
+#else
+#define DEBUG_PRINTF(fmt, ...) printf(fmt, ...)
+#endif
+#else
+#define DEBUG_PRINTF(fmt, ...)
+#endif
+
 #if 1
 #define VENDOR_ID 0x093C
 #define PRODUCT_ID 0x1300
@@ -29,8 +41,8 @@ extern "C" {
 #define PRODUCT_ID 0x6030
 #endif
 
-#define NEORADIO2_RX_BUFFER_SIZE 256
-#define NEORADIO2_TX_BUFFER_SIZE 256
+#define NEORADIO2_RX_BUFFER_SIZE 4096
+#define NEORADIO2_TX_BUFFER_SIZE 4096
 #define NEORADIO2_RX_PACKET_BUFFER_SIZE (NEORADIO2_RX_BUFFER_SIZE / 6) + 1
 #define NEORADIO2_MAX_SUPPORTED_USB_DEVICES 8
 

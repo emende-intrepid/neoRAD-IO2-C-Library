@@ -1,4 +1,5 @@
 #include "neoRAD-IO2_PacketHandler.h"
+#include "stdio.h"
 uint8_t neoRADIO2CRC8Table[256];
 
 int neoRADIO2IdentifyChain(neoRADIO2_DeviceInfo * deviceInfo)
@@ -263,12 +264,14 @@ void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo)
             }
             else
             {
+	            DEBUG_PRINTF("CRC ERROR got (0x%x), expected (%X)\n", rxdata[dataloc + header->len], neoRADIO2CalcCRC8(&rxdata[loc], sizeof(neoRADIO2frame_header) + header->len));
                 loc++;
                 FIFO_IncrementOutPtr(&deviceInfo->rxfifo, 1);
             }
         }
         else
         {
+	        DEBUG_PRINTF("DROPPED BYTE (0x%X)\n", rxdata[loc]);
             loc++;
             FIFO_IncrementOutPtr(&deviceInfo->rxfifo, 1);
         }
