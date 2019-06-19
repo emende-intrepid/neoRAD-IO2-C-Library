@@ -29,6 +29,7 @@ int neoRADIO2SendJumpToApp(neoRADIO2_DeviceInfo * deviceInfo)
     if (neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_START, 0xFF, 0xFF, NULL, 0) == 0)
     {
         deviceInfo->State = neoRADIO2state_ConnectedWaitForAppStart;
+        deviceInfo->Timeus = 0;
         return 0;
     }
     else
@@ -319,19 +320,15 @@ void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo)
 	}
 }
 
-void neoRADIO2LookForStartHeader(neoRADIO2_DeviceInfo * deviceInfo)
+void neoRADIO2WaitForStartHeader(neoRADIO2_DeviceInfo * deviceInfo)
 {
-    for (int i = 0; i < deviceInfo->rxDataCount; i++)
-    {
-	    if(deviceInfo->rxDataBuffer[i].header.start_of_frame == 0xAA && \
-			deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_COMMAND_START)
-	    {
-		    if (neoRADIO2IdentifyChain(deviceInfo) != 0)
-		    {
-			    deviceInfo->State = neoRADIO2state_Disconnected;
-		    }
-	    }
-    }
+	if(deviceInfo->Timeus > (50 * 1000))
+	{
+		if (neoRADIO2IdentifyChain(deviceInfo) != 0)
+		{
+			deviceInfo->State = neoRADIO2state_Disconnected;
+		}
+	}
 }
 
 void neoRADIO2StartReadSettings(neoRADIO2_DeviceInfo * deviceInfo)

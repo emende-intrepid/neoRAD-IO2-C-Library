@@ -54,9 +54,9 @@ typedef enum _neoRADIO2_SettingsStates {
 
 typedef struct _neoRADIO2_ChipInfo {
     uint32_t	serialNumber;
-    uint16_t	manufacture_year;
-    uint8_t	    manufacture_day;
-    uint8_t 	manufacture_month;
+	uint16_t	manufacture_year;
+	uint8_t	    manufacture_day;
+	uint8_t 	manufacture_month;
     uint8_t     deviceType;
     uint8_t		firmwareVersion_major;
     uint8_t		firmwareVersion_minor;

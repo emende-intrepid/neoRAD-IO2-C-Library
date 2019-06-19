@@ -14,7 +14,7 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2SendUARTBreak(neoRADIO2_DeviceInfo * devInfo);
 void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo);
-void neoRADIO2LookForStartHeader(neoRADIO2_DeviceInfo * deviceInfo);
+void neoRADIO2WaitForStartHeader(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2StartReadSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2StartWriteSettings(neoRADIO2_DeviceInfo * deviceInfo);

@@ -101,7 +101,7 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
 
     if (result == 0)
     {
-        result = neoRADIO2SendJumpToApp(devInfo);
+    	result = neoRADIO2SendJumpToApp(devInfo);
     }
     return result;
 }
@@ -124,7 +124,7 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
         case neoRADIO2state_Disconnected:
             break;
         case neoRADIO2state_ConnectedWaitForAppStart:
-            neoRADIO2LookForStartHeader(devInfo);
+            neoRADIO2WaitForStartHeader(devInfo);
             break;
         case neoRADIO2state_ConnectedWaitIdentResponse:
             neoRADIO2LookForIdentResponse(devInfo);
