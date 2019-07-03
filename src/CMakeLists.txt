@@ -17,8 +17,10 @@ elseif(APPLE)
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)
-else()
-    SET(HIDAPI_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/mac)
+elseif(UNIX AND NOT APPLE)
+	set(HIDAPI_DIR ${PROJECT_SOURCE_DIR}/libs/hidapi/linux)
+	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+	link_libraries("-ludev")
 endif()
 
 
