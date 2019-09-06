@@ -3,10 +3,6 @@
 #include "ft260.h"
 #endif /* RADIO2_EMBEDDED_LIB */
 #include "stdint.h"
-#include "neoRAD-IO2-TC.h"
-#include "neoRAD-IO2-AIN.h"
-#include "neoRAD-IO2-AOUT.h"
-#include "neoRAD-IO2-PWRRLY.h"
 #include "radio2_frames.h"
 #include "fifo.h"
 
@@ -108,6 +104,7 @@ extern const unsigned int neoRADIO2GetDeviceNumberOfBanks[];
 
 #ifndef RADIO2_EMBEDDED_LIB
 int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int size);
+int neoRADIO2SetupFT260(neoRADIO2_DeviceInfo * devInfo);
 void neoRADIO2CloseDevice(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo);
 #endif /* RADIO2_EMBEDDED_LIB */

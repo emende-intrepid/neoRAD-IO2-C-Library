@@ -11,6 +11,7 @@ int neoRADIO2SendJumpToApp(neoRADIO2_DeviceInfo * deviceInfo);
 int neoRADIO2GetNewData(neoRADIO2_DeviceInfo * devInfo);
 int neoRADIO2SendPacket(neoRADIO2_DeviceInfo * devInfo, uint8_t command, uint8_t device, uint8_t bank, uint8_t * data, uint8_t len);
 void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo);
+int neoRADIO2IsBankEnabled(neoRADIO2_DeviceInfo * deviceInfo, uint8_t dev, uint8_t bank);
 int neoRADIO2SendUARTBreak(neoRADIO2_DeviceInfo * devInfo);
 void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2LookForIdentResponse(neoRADIO2_DeviceInfo * deviceInfo);

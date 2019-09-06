@@ -35,59 +35,58 @@ int neoRADIO2FindDevices(neoRADIO2_USBDevice usbDevices[], const unsigned int si
     }
     return -1;
 }
-
-
-int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
+int neoRADIO2SetupFT260(neoRADIO2_DeviceInfo * devInfo)
 {
-    int result;
-    uint8_t buf[64];
 
-    FIFO_Init(&devInfo->rxfifo, devInfo->rxbuffer, NEORADIO2_RX_BUFFER_SIZE);
-    FIFO_Init(&devInfo->txfifo, devInfo->txbuffer, NEORADIO2_TX_BUFFER_SIZE);
-    result = ft260OpenDevice(&devInfo->usbDevice.ft260Device);
-    devInfo->LastBank = 0;
+	int result;
+	uint8_t buf[64];
 
-    if (result == 0)
-    {
-        //Setup FT260 Clock
-        buf[0] = SYSTEM_SETTING_REPORT_ID;
-        buf[1] = SET_CLOCK;
-        buf[2] = CLOCK_CTRL_48;
+	FIFO_Init(&devInfo->rxfifo, devInfo->rxbuffer, NEORADIO2_RX_BUFFER_SIZE);
+	FIFO_Init(&devInfo->txfifo, devInfo->txbuffer, NEORADIO2_TX_BUFFER_SIZE);
+	result = ft260OpenDevice(&devInfo->usbDevice.ft260Device);
+	devInfo->LastBank = 0;
+
+	if (result == 0)
+	{
+		//Setup FT260 Clock
+		buf[0] = SYSTEM_SETTING_REPORT_ID;
+		buf[1] = SET_CLOCK;
+		buf[2] = CLOCK_CTRL_48;
 		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
-    }
-    if (result == 0)
-    {
-        //GPIOA TX LED
-        memset(buf, 0, sizeof(buf));
-        buf[0] = SYSTEM_SETTING_REPORT_ID;
-        buf[1] = 0x08;
-        buf[2] = 0x04;
+	}
+	if (result == 0)
+	{
+		//GPIOA TX LED
+		memset(buf, 0, sizeof(buf));
+		buf[0] = SYSTEM_SETTING_REPORT_ID;
+		buf[1] = 0x08;
+		buf[2] = 0x04;
 		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
-    }
-    if (result == 0)
-    {
-        //GPIOG RX_LED
-        memset(buf, 0, sizeof(buf));
-        buf[0] = SYSTEM_SETTING_REPORT_ID;
-        buf[1] = 0x09;
-        buf[2] = 0x05;
-        result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
-    }
-    if (result == 0)
-    {
-        //GPIOH UARTBREAK
-        memset(buf, 0, sizeof(buf));
-        buf[0] = GPIO_REPORT_ID;
-        buf[1] = 0x00;
-        buf[2] = 0x00;
-        buf[3] = 0x80;
-        buf[4] = 0x80;
+	}
+	if (result == 0)
+	{
+		//GPIOG RX_LED
+		memset(buf, 0, sizeof(buf));
+		buf[0] = SYSTEM_SETTING_REPORT_ID;
+		buf[1] = 0x09;
+		buf[2] = 0x05;
 		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
-    }
-    if (result == 0)
-    {
-        result = ft260SetupUART(&devInfo->usbDevice.ft260Device, 250000, 1, 0);
-    }
+	}
+	if (result == 0)
+	{
+		//GPIOH UARTBREAK
+		memset(buf, 0, sizeof(buf));
+		buf[0] = GPIO_REPORT_ID;
+		buf[1] = 0x00;
+		buf[2] = 0x00;
+		buf[3] = 0x80;
+		buf[4] = 0x80;
+		result = ft260ConfigureDevice(&devInfo->usbDevice.ft260Device, buf, sizeof(buf));
+	}
+	if (result == 0)
+	{
+		result = ft260SetupUART(&devInfo->usbDevice.ft260Device, 250000, 1, 0);
+	}
 
 
 	if (result == 0)
@@ -99,6 +98,13 @@ int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
 		}
 	}
 
+	return result;
+}
+
+int neoRADIO2ConnectDevice(neoRADIO2_DeviceInfo * devInfo)
+{
+
+	int result = neoRADIO2SetupFT260(devInfo);
     if (result == 0)
     {
     	result = neoRADIO2SendJumpToApp(devInfo);

@@ -1,4 +1,10 @@
+#include <radio2_frames.h>
 #include "neoRAD-IO2_PacketHandler.h"
+#include "neoRAD-IO2-TC.h"
+#include "neoRAD-IO2-AIN.h"
+#include "neoRAD-IO2-AOUT.h"
+#include "neoRAD-IO2-PWRRLY.h"
+#include "neoRAD-IO2-DIO.h"
 #include "stdio.h"
 uint8_t neoRADIO2CRC8Table[256];
 
@@ -168,7 +174,7 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
         {
             uint64_t reportRatems = deviceInfo->ChainList[dev][bank].settings.config.poll_rate_ms;
             uint64_t lastReportTime = deviceInfo->ChainList[dev][bank].lastReadTimeus;
-            if (reportRatems != 0)
+            if (reportRatems != 0 && neoRADIO2IsBankEnabled(deviceInfo, dev, bank))
             {
                 if ((deviceInfo->Timeus - lastReportTime) >= (reportRatems) * 1000)
                 {
@@ -183,6 +189,37 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
             neoRADIO2SendPacket(deviceInfo, NEORADIO2_COMMAND_READ_DATA, dev, txBank, NULL, 0);
         }
     }
+}
+/* returns 0 if disabled all other values indicate bank has read enabled*/
+int neoRADIO2IsBankEnabled(neoRADIO2_DeviceInfo * deviceInfo, uint8_t dev, uint8_t bank)
+{
+	switch (deviceInfo->ChainList[dev][0].deviceType)
+	{
+
+		case NEORADIO2_DEVTYPE_TC:
+			return deviceInfo->ChainList[dev][bank].settings.config.channel_1_config;
+			break;
+		case NEORADIO2_DEVTYPE_AIN:
+			return deviceInfo->ChainList[dev][bank].settings.config.channel_1_config;
+			break;
+		case NEORADIO2_DEVTYPE_DIO:
+			if (bank < 3)
+			{
+				neoRADIO2DIN_channelConfig c1 = {.u32 = deviceInfo->ChainList[dev][bank].settings.config.channel_1_config};
+				neoRADIO2DIN_channelConfig c2 = {.u32 = deviceInfo->ChainList[dev][bank].settings.config.channel_2_config};
+				neoRADIO2DIN_channelConfig c3 = {.u32 = deviceInfo->ChainList[dev][bank].settings.config.channel_3_config};
+				return c1.data.enable + c2.data.enable + c3.data.enable;
+			}
+			else
+			{
+				return 0;
+			}
+		case NEORADIO2_DEVTYPE_AOUT:
+		case NEORADIO2_DEVTYPE_PWRRLY:
+			return 0;
+		default:
+			return 0;
+	}
 }
 
 #ifndef RADIO2_EMBEDDED_LIB
