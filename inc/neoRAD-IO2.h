@@ -40,7 +40,7 @@ extern "C" {
 #define NEORADIO2_RX_BUFFER_SIZE 4096
 #define NEORADIO2_TX_BUFFER_SIZE 4096
 #define NEORADIO2_RX_PACKET_BUFFER_SIZE (NEORADIO2_RX_BUFFER_SIZE / 6) + 1
-#define NEORADIO2_MAX_SUPPORTED_USB_DEVICES 8
+#define NEORADIO2_MAX_SUPPORTED_USB_DEVICES 4
 
 typedef enum _neoRADIO2_SettingsStates {
 	neoRADIO2Settings_NeedsRead = 0,
@@ -49,6 +49,8 @@ typedef enum _neoRADIO2_SettingsStates {
 } neoRADIO2_SettingsStates;
 
 typedef struct _neoRADIO2_ChipInfo {
+	uint64_t    lastReadTimeus;
+	neoRADIO2_settings settings;
     uint32_t	serialNumber;
 	uint16_t	manufacture_year;
 	uint8_t	    manufacture_day;
@@ -60,8 +62,7 @@ typedef struct _neoRADIO2_ChipInfo {
     uint8_t		hardwareRev_minor;
     uint8_t     status;
 	uint8_t     settingsState;
-    uint64_t    lastReadTimeus;
-	neoRADIO2_settings settings;
+	uint8_t		waitingForRead;
 } PACKED neoRADIO2_ChipInfo;
 
 typedef enum _neoRADIO2_RunStates {
@@ -70,8 +71,15 @@ typedef enum _neoRADIO2_RunStates {
     neoRADIO2state_ConnectedWaitIdentResponse,
 	neoRADIO2state_ConnectedWaitReadSettings,
 	neoRADIO2state_ConnectedWaitWriteSettings,
+	neoRADIO2state_ConnectedWaitFinishWriteSettings,
     neoRADIO2state_Connected,
 } neoRADIO2_RunStates;
+
+typedef enum _neoRADIO2_errorStates {
+	neoRADIO2error_none = 0,
+	neoRADIO2error_missedRead = 1,
+	neoRADIO2error_checksumFail = 2,
+} neoRADIO2_errorStates;
 
 #ifndef RADIO2_EMBEDDED_LIB
 typedef struct _neoRADIO2_USBDevice
@@ -85,19 +93,20 @@ typedef struct _neoRADIO2_DeviceInfo {
 #ifndef RADIO2_EMBEDDED_LIB
 	neoRADIO2_USBDevice usbDevice;
 #endif /* RADIO2_EMBEDDED_LIB */
+	uint64_t Timeus;
     neoRADIO2_ChipInfo ChainList[8][8];
     neoRADIO2_RunStates State;
-    uint8_t LastDevice;
-    uint8_t LastBank;
-    uint64_t Timeus;
-    uint8_t isOnline;
-    uint8_t readCount;
-    uint8_t rxbuffer[NEORADIO2_RX_BUFFER_SIZE];
-    uint8_t txbuffer[NEORADIO2_TX_BUFFER_SIZE];
+	neoRADIO2_errorStates errorState;
     fifo_t rxfifo;
     fifo_t txfifo;
     neoRADIO2frame rxDataBuffer[NEORADIO2_RX_PACKET_BUFFER_SIZE];
     uint8_t rxDataCount;
+	uint8_t LastDevice;
+	uint8_t LastBank;
+	uint8_t isOnline;
+	uint8_t readCount;
+	uint8_t rxbuffer[NEORADIO2_RX_BUFFER_SIZE];
+	uint8_t txbuffer[NEORADIO2_TX_BUFFER_SIZE];
 } PACKED neoRADIO2_DeviceInfo;
 
 extern const unsigned int neoRADIO2GetDeviceNumberOfBanks[];

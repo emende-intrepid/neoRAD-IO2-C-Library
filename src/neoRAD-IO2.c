@@ -125,6 +125,7 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
             return result;
         neoRADIO2LookForDevicePackets(devInfo);
     }
+    devInfo->errorState = neoRADIO2error_none;
     switch (devInfo->State)
     {
         case neoRADIO2state_Disconnected:
@@ -141,6 +142,9 @@ int neoRADIO2ProcessIncomingData(neoRADIO2_DeviceInfo * devInfo, uint64_t diffTi
 	    case neoRADIO2state_ConnectedWaitWriteSettings:
 		    neoRADIO2WriteSettings(devInfo);
 		    break;
+		case neoRADIO2state_ConnectedWaitFinishWriteSettings:
+			neoRADIO2WaitFinishWriteSettings(devInfo);
+			break;
         case neoRADIO2state_Connected:
             if (devInfo->isOnline)
                 neoRADIO2ProcessConnectedState(devInfo);

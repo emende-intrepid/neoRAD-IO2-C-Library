@@ -178,8 +178,18 @@ void neoRADIO2ProcessConnectedState(neoRADIO2_DeviceInfo * deviceInfo)
             {
                 if ((deviceInfo->Timeus - lastReportTime) >= (reportRatems) * 1000)
                 {
-	                txBank |= (1 << bank);
-                    deviceInfo->ChainList[dev][bank].lastReadTimeus = deviceInfo->Timeus;
+					if (deviceInfo->ChainList[dev][bank].waitingForRead != 1)
+					{
+						deviceInfo->ChainList[dev][bank].waitingForRead = 1;
+					}
+					else
+					{
+						//We missed a read
+						deviceInfo->ChainList[dev][bank].waitingForRead = 0;
+						deviceInfo->errorState = neoRADIO2error_missedRead;
+					}
+					txBank |= (1 << bank);
+					deviceInfo->ChainList[dev][bank].lastReadTimeus = deviceInfo->Timeus;
                 }
             }
         }
@@ -299,6 +309,13 @@ void neoRADIO2LookForDevicePackets(neoRADIO2_DeviceInfo * deviceInfo)
                 deviceInfo->rxDataCount++;
                 FIFO_IncrementOutPtr(&deviceInfo->rxfifo, (header->len + minPacketSize));
                 loc += (header->len + minPacketSize);
+				if (header->start_of_frame == 0x55)
+				{
+					if (deviceInfo->ChainList[header->device][header->bank].waitingForRead)
+					{
+						deviceInfo->ChainList[header->device][header->bank].waitingForRead = 0;
+					}
+				}
             }
             else
             {
@@ -487,7 +504,7 @@ void neoRADIO2WriteSettings(neoRADIO2_DeviceInfo * deviceInfo)
 			if (part == SETTINGS_NUMPARTS)
 			{
 				deviceInfo->ChainList[device][bank].settingsState = neoRADIO2Settings_Valid;
-				neoRADIO2StartWriteSettings(deviceInfo);
+				neoRADIO2WaitFinishWriteSettings(deviceInfo);
 			}
 			else
 			{
@@ -508,6 +525,19 @@ void neoRADIO2WriteSettings(neoRADIO2_DeviceInfo * deviceInfo)
 
 		}
 	}
+}
+void neoRADIO2WaitFinishWriteSettings(neoRADIO2_DeviceInfo * deviceInfo)
+{
+	for (int i = 0; i < deviceInfo->rxDataCount; i++)
+	{
+		if (deviceInfo->rxDataBuffer[i].header.command_status == NEORADIO2_STATUS_WRITE_SETTINGS && \
+				deviceInfo->rxDataBuffer[i].header.start_of_frame == 0x55)
+		{
+			neoRADIO2StartWriteSettings(deviceInfo);
+			return;
+		}
+	}
+	deviceInfo->State = neoRADIO2state_ConnectedWaitFinishWriteSettings;
 }
 uint8_t neoRADIO2CalcCRC8(uint8_t * data, int len)
 {

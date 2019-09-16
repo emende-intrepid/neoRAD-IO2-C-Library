@@ -20,6 +20,7 @@ void neoRADIO2StartReadSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2ReadSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2StartWriteSettings(neoRADIO2_DeviceInfo * deviceInfo);
 void neoRADIO2WriteSettings(neoRADIO2_DeviceInfo * deviceInfo);
+void neoRADIO2WaitFinishWriteSettings(neoRADIO2_DeviceInfo * deviceInfo);
 uint8_t neoRADIO2CalcCRC8(uint8_t * data, int len);
 void neoRADIO2CRC8_Init(void);
 uint8_t neoRADIO2GetBankPos(uint8_t x);
