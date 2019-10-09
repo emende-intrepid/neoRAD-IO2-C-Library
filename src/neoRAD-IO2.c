@@ -217,9 +217,9 @@ void neoRADIO2SerialToString(char * string, uint32_t serial)
 		string[i] = serial % 36;
 		serial /= 36;
 
-		if (string[i] < 9)
+		if (string[i] <= 9)
 			string[i] += 0x30;
-		else if (string[i] < 35)
+		else if (string[i] <= 35)
 			string[i] += 0x37;
 		else
 			string[i] = ' ';
