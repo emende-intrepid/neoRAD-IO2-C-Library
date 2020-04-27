@@ -213,12 +213,12 @@ int neoRADIO2IsBankEnabled(neoRADIO2_DeviceInfo * deviceInfo, uint8_t dev, uint8
 			return deviceInfo->ChainList[dev][bank].settings.config.channel_1_config;
 			break;
 		case NEORADIO2_DEVTYPE_DIO:
-			if (bank < 3)
+			if (bank < 4)
 			{
 				neoRADIO2DIN_channelConfig c1 = {.u32 = deviceInfo->ChainList[dev][bank].settings.config.channel_1_config};
 				neoRADIO2DIN_channelConfig c2 = {.u32 = deviceInfo->ChainList[dev][bank].settings.config.channel_2_config};
 				neoRADIO2DIN_channelConfig c3 = {.u32 = deviceInfo->ChainList[dev][bank].settings.config.channel_3_config};
-				return c1.data.enable + c2.data.enable + c3.data.enable;
+				return c1.data.mode + c2.data.mode + c3.data.mode;
 			}
 			else
 			{
