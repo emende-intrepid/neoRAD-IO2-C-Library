@@ -1,6 +1,6 @@
 [submodule "libs/hidapi"]
 	path = libs/hidapi
-	url = https://github.com/signal11/hidapi.git
+url=https://github.com/libusb/hidapi.git
 [submodule "inc/neorad-io2-framedescription"]
 	path = inc/neorad-io2-framedescription
 	url = https://github.com/emende-intrepid/neoRAD-IO2-FrameDescription.git

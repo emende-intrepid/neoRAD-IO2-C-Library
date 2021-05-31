@@ -23,11 +23,7 @@ int ft260FindDevices(ft260_device devices[], int len, int vid, int pid)
 
     while (deviceList != NULL)
     {
-        #ifdef __APPLE__
-        int interfaceNumber = deviceList->path[strlen(deviceList->path) - 1] - 0x30;
-        #else
         int interfaceNumber = deviceList->interface_number;
-        #endif
         if (deviceList->serial_number == NULL) //Serial number was not set
             devices[0].SerialNumber[deviceCount] = '0';
         else
